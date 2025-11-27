@@ -1,10 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SettingsModal from './SettingsModal';
 import StrumentiManager from './StrumentiManager';
 import Dashboard from './Dashboard';
+import StoricoModal from './StoricoModal';
+import { getSharedReportsCount } from '../utils/storage';
 
-function HamburgerMenu({ show, onClose, settings, onUpdateSettings }) {
+function HamburgerMenu({ show, onClose, settings, onUpdateSettings, showToast }) {
   const [activeModal, setActiveModal] = useState(null);
+  const [storicoCount, setStoricoCount] = useState(0);
+
+  useEffect(() => {
+    if (show) {
+      loadStoricoCount();
+    }
+  }, [show]);
+
+  const loadStoricoCount = async () => {
+    const count = await getSharedReportsCount();
+    setStoricoCount(count);
+  };
 
   const handleMenuClick = (modal) => {
     setActiveModal(modal);
@@ -12,6 +26,7 @@ function HamburgerMenu({ show, onClose, settings, onUpdateSettings }) {
 
   const closeModal = () => {
     setActiveModal(null);
+    loadStoricoCount(); // Ricarica contatore dopo chiusura storico
   };
 
   if (!show) return null;
@@ -42,6 +57,20 @@ function HamburgerMenu({ show, onClose, settings, onUpdateSettings }) {
             >
               <span className="hamburger-icon">🛠️</span>
               <span className="hamburger-label">Gestione Strumenti</span>
+              <span className="hamburger-arrow">›</span>
+            </div>
+
+            <div 
+              className="hamburger-item"
+              onClick={() => handleMenuClick('storico')}
+            >
+              <span className="hamburger-icon">📚</span>
+              <span className="hamburger-label">
+                Storico
+                {storicoCount > 0 && (
+                  <span className="hamburger-badge">({storicoCount})</span>
+                )}
+              </span>
               <span className="hamburger-arrow">›</span>
             </div>
 
@@ -92,7 +121,7 @@ function HamburgerMenu({ show, onClose, settings, onUpdateSettings }) {
           </div>
 
           <div className="hamburger-footer">
-            <span>v1.1.0</span>
+            <span>v1.2.0</span>
           </div>
         </div>
       </div>
@@ -110,6 +139,10 @@ function HamburgerMenu({ show, onClose, settings, onUpdateSettings }) {
 
       {activeModal === 'strumenti' && (
         <StrumentiManager onClose={closeModal} />
+      )}
+
+      {activeModal === 'storico' && (
+        <StoricoModal onClose={closeModal} showToast={showToast} />
       )}
 
       {activeModal === 'dashboard' && (

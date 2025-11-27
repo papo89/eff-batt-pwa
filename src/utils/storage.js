@@ -225,6 +225,21 @@ export async function getUnsharedReportsCount() {
   return reports.filter(r => !r.shared).length;
 }
 
+export async function getUnsharedReports() {
+  const reports = await getReports();
+  return reports.filter(r => !r.shared);
+}
+
+export async function getSharedReports() {
+  const reports = await getReports();
+  return reports.filter(r => r.shared === true);
+}
+
+export async function getSharedReportsCount() {
+  const reports = await getReports();
+  return reports.filter(r => r.shared === true).length;
+}
+
 export async function markReportAsShared(id) {
   const db = await initDB();
   const report = await db.get(STORE_REPORTS, id);

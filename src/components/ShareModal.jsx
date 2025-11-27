@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getReports, markMultipleReportsAsShared } from '../utils/storage';
+import { getUnsharedReports, markMultipleReportsAsShared } from '../utils/storage';
 import { shareMultiplePDFs } from '../utils/pdfGenerator';
 import { vibrateShort, vibrateSuccess } from '../utils/feedback';
 
@@ -17,10 +17,11 @@ function ShareModal({ show, state, pdfBytes, onClose, showToast }) {
   const loadReports = async () => {
     setLoading(true);
     try {
-      const allReports = await getReports();
+      // Carica solo report NON condivisi
+      const unsharedReports = await getUnsharedReports();
       // Ordina per data decrescente
-      allReports.sort((a, b) => b.createdAt - a.createdAt);
-      setReports(allReports);
+      unsharedReports.sort((a, b) => b.createdAt - a.createdAt);
+      setReports(unsharedReports);
       setSelected([]);
     } catch (e) {
       console.error('Errore caricamento reports:', e);

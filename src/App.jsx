@@ -320,6 +320,7 @@ function App() {
         onClose={() => setShowMenu(false)}
         settings={settings}
         onUpdateSettings={setSettings}
+        showToast={showToast}
       />
 
       <PWAPrompt />

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   validateMisurazioni, 
   validateDensita, 
@@ -8,13 +8,15 @@ import {
   formatDate
 } from '../utils/validation';
 import { generatePDF, getFilename, getReportId, sharePDF } from '../utils/pdfGenerator';
-import { saveReport } from '../utils/storage';
+import { saveReport, loadSettings } from '../utils/storage';
+import { vibrateShort, vibrateSuccess, vibrateError } from '../utils/feedback';
 
 function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdfGenerated, onBack, showToast }) {
   const sede = state.sedi[sedeIdx];
   const vehicle = sede.veicoli[vehicleIdx];
   const data = vehicle.data || {};
   const tipo = vehicle.tipo;
+  const settings = loadSettings();
 
   const steps = tipo === '3M' 
     ? [{ id: 'batterie', title: '🔋 Batterie' }, { id: 'misure', title: '📊 Misurazioni' }, { id: 'esito', title: '✅ Esito' }]
@@ -22,6 +24,31 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
 
   const [currentStep, setCurrentStep] = useState(0);
   const step = steps[currentStep];
+
+  // Wake Lock per schermo acceso
+  useEffect(() => {
+    let wakeLock = null;
+    
+    const requestWakeLock = async () => {
+      if (settings.keepScreenOn && 'wakeLock' in navigator) {
+        try {
+          wakeLock = await navigator.wakeLock.request('screen');
+          console.log('Wake Lock attivato');
+        } catch (e) {
+          console.log('Wake Lock non disponibile:', e);
+        }
+      }
+    };
+    
+    requestWakeLock();
+    
+    return () => {
+      if (wakeLock) {
+        wakeLock.release();
+        console.log('Wake Lock rilasciato');
+      }
+    };
+  }, [settings.keepScreenOn]);
 
   const updateField = (field, value) => {
     onUpdateData({ [field]: value });
@@ -31,12 +58,27 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
     updateField(field, formatDataProduzione(value));
   };
 
+  // Riempi tutte le densità con il valore del primo elemento
+  const fillDensita = (prefix) => {
+    const firstValue = data[`${prefix}1`];
+    if (!firstValue) return;
+    
+    vibrateShort();
+    
+    const updates = {};
+    for (let i = 2; i <= 12; i++) {
+      updates[`${prefix}${i}`] = firstValue;
+    }
+    onUpdateData(updates);
+  };
+
   // Navigazione
   const nextStep = () => {
     // Validazioni per step misure
     if (step.id === 'misure') {
       const warnings = validateMisurazioni(data);
       if (warnings.length > 0) {
+        vibrateError();
         showToast(warnings.join('<br>'), 'danger');
         return;
       }
@@ -46,15 +88,18 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
     if (step.id === 'densita') {
       const warnings = validateDensita(data);
       if (warnings.length > 0) {
+        vibrateError();
         showToast(warnings.join('<br>'), 'danger');
         return;
       }
     }
 
+    vibrateShort();
     setCurrentStep(prev => prev + 1);
   };
 
   const prevStep = () => {
+    vibrateShort();
     setCurrentStep(prev => prev - 1);
   };
 
@@ -63,6 +108,7 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
     // Controllo campi mancanti
     const missing = getMissingFields(state, sedeIdx, vehicleIdx);
     if (missing.length > 0) {
+      vibrateError();
       showToast(`⚠️ Impossibile generare PDF.<br><br>Mancano:<br>• ${missing.join('<br>• ')}`, 'danger');
       return;
     }
@@ -70,6 +116,7 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
     // Controllo scadenze
     const scadenze = validateScadenzeStrumenti(state.strumenti, state.operatore, tipo);
     if (scadenze.length > 0) {
+      vibrateError();
       showToast(scadenze.join('<br>'), 'danger');
       return;
     }
@@ -94,6 +141,7 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
       });
 
       onPdfGenerated();
+      vibrateSuccess();
 
       // Prova a condividere, altrimenti download
       const shared = await sharePDF(pdfBytesOut, filename);
@@ -104,6 +152,7 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
       onBack();
     } catch (e) {
       console.error('Errore generazione PDF:', e);
+      vibrateError();
       showToast('Errore generazione PDF: ' + e.message, 'danger');
     }
   };
@@ -252,6 +301,13 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
           </div>
         ))}
       </div>
+      <button
+        className="btn btn-outline btn-small fill-btn"
+        onClick={() => fillDensita(prefix)}
+        disabled={!data[`${prefix}1`]}
+      >
+        📋 Riempi tutti con "{data[`${prefix}1`] || '----'}"
+      </button>
     </>
   );
 

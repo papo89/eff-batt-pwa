@@ -183,3 +183,59 @@ export function formatDataProduzione(value) {
   
   return cleaned;
 }
+
+// ==================== SCADENZE IMMINENTI ====================
+export function checkScadenzeImminenti(strumenti, giorni = 20) {
+  const warnings = [];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const checkScadenza = (scadenzaStr, nomeStrumento, idStrumento) => {
+    if (!scadenzaStr) return;
+    
+    const scadenza = new Date(scadenzaStr);
+    scadenza.setHours(0, 0, 0, 0);
+    
+    const diffTime = scadenza.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays <= 0) {
+      warnings.push({
+        tipo: 'scaduto',
+        strumento: nomeStrumento,
+        id: idStrumento,
+        scadenza: formatDate(scadenzaStr),
+        giorni: diffDays,
+        message: `${nomeStrumento} ${idStrumento} SCADUTO (${formatDate(scadenzaStr)})`
+      });
+    } else if (diffDays <= giorni) {
+      warnings.push({
+        tipo: 'imminente',
+        strumento: nomeStrumento,
+        id: idStrumento,
+        scadenza: formatDate(scadenzaStr),
+        giorni: diffDays,
+        message: `${nomeStrumento} ${idStrumento} scade tra ${diffDays} giorni (${formatDate(scadenzaStr)})`
+      });
+    }
+  };
+  
+  if (strumenti.multId && strumenti.multScad) {
+    checkScadenza(strumenti.multScad, '🔧 Multimetro', strumenti.multId);
+  }
+  
+  if (strumenti.densId && strumenti.densScad) {
+    checkScadenza(strumenti.densScad, '🔬 Densimetro', strumenti.densId);
+  }
+  
+  // Ordina per giorni rimanenti (più urgenti prima)
+  warnings.sort((a, b) => a.giorni - b.giorni);
+  
+  return warnings;
+}
+
+export function getScadenzaColor(giorni) {
+  if (giorni <= 0) return 'danger';      // Rosso - scaduto
+  if (giorni <= 10) return 'warning-high'; // Arancione
+  return 'warning';                       // Giallo
+}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { loadState, saveState, getDefaultState, loadPdfTemplate, savePdfTemplate } from './utils/storage';
+import { loadState, saveState, getDefaultState, loadPdfTemplate, savePdfTemplate, loadSettings, saveSettings, getDefaultSettings } from './utils/storage';
+import { initNotifications } from './utils/notifications';
 import Header from './components/Header';
 import Home from './components/Home';
 import SedeForm from './components/SedeForm';
@@ -8,10 +9,12 @@ import VehicleForm from './components/VehicleForm';
 import PdfSetup from './components/PdfSetup';
 import Toast from './components/Toast';
 import ShareModal from './components/ShareModal';
+import HamburgerMenu from './components/HamburgerMenu';
 import PWAPrompt from './components/PWAPrompt';
 
 function App() {
   const [state, setState] = useState(getDefaultState());
+  const [settings, setSettings] = useState(getDefaultSettings());
   const [pdfBytes, setPdfBytes] = useState(null);
   const [screen, setScreen] = useState('loading');
   const [editingSede, setEditingSede] = useState(null);
@@ -20,12 +23,16 @@ function App() {
   const [currentVehicle, setCurrentVehicle] = useState(null);
   const [toast, setToast] = useState({ show: false, message: '', type: 'warning' });
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
 
-  // Carica stato e PDF all'avvio
+  // Carica stato, settings e PDF all'avvio
   useEffect(() => {
     const init = async () => {
       const savedState = loadState();
       setState(savedState);
+      
+      const savedSettings = loadSettings();
+      setSettings(savedSettings);
       
       const template = await loadPdfTemplate();
       if (template) {
@@ -34,6 +41,9 @@ function App() {
       } else {
         setScreen('setup');
       }
+
+      // Inizializza notifiche
+      initNotifications();
     };
     init();
   }, []);
@@ -44,6 +54,44 @@ function App() {
       saveState(state);
     }
   }, [state, screen]);
+
+  // Salva settings ad ogni modifica
+  useEffect(() => {
+    saveSettings(settings);
+    applyTheme(settings.theme);
+    applyTextSize(settings.textSize);
+    applyBoldText(settings.boldText);
+  }, [settings]);
+
+  // Applica tema
+  const applyTheme = (theme) => {
+    const root = document.documentElement;
+    root.classList.remove('theme-light', 'theme-dark');
+    
+    if (theme === 'auto') {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      root.classList.add(prefersDark ? 'theme-dark' : 'theme-light');
+    } else {
+      root.classList.add(`theme-${theme}`);
+    }
+  };
+
+  // Applica dimensione testo
+  const applyTextSize = (size) => {
+    const root = document.documentElement;
+    root.classList.remove('text-small', 'text-normal', 'text-large');
+    root.classList.add(`text-${size}`);
+  };
+
+  // Applica grassetto
+  const applyBoldText = (bold) => {
+    const root = document.documentElement;
+    if (bold) {
+      root.classList.add('text-bold');
+    } else {
+      root.classList.remove('text-bold');
+    }
+  };
 
   // ==================== STATE HANDLERS ====================
   const updateOperatore = (field, value) => {
@@ -193,7 +241,10 @@ function App() {
 
   return (
     <>
-      <Header onShare={() => setShowShareModal(true)} />
+      <Header 
+        onShare={() => setShowShareModal(true)} 
+        onMenuToggle={() => setShowMenu(true)}
+      />
       
       {screen === 'home' && (
         <Home
@@ -262,6 +313,13 @@ function App() {
         pdfBytes={pdfBytes}
         onClose={() => setShowShareModal(false)}
         showToast={showToast}
+      />
+
+      <HamburgerMenu
+        show={showMenu}
+        onClose={() => setShowMenu(false)}
+        settings={settings}
+        onUpdateSettings={setSettings}
       />
 
       <PWAPrompt />

@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
 import { isVehicleComplete, checkScadenzePreventive } from '../utils/validation';
+import ScadenzeAlert from './ScadenzeAlert';
+import StrumentiAutocomplete from './StrumentiAutocomplete';
 
 function Home({ 
   state, 
@@ -25,6 +27,9 @@ function Home({
 
   return (
     <div className="container">
+      {/* Banner Scadenze Imminenti */}
+      <ScadenzeAlert strumenti={state.strumenti} />
+
       {/* Dati Operatore */}
       <div className="card">
         <h2>👷 Dati Operatore</h2>
@@ -63,18 +68,20 @@ function Home({
       <div className="card">
         <h2>🛠️ Strumenti di Misura</h2>
         <p style={{ fontSize: '12px', color: 'var(--text-light)', margin: '-8px 0 12px' }}>
-          Validi per tutte le prove
+          Validi per tutte le prove • Inizia a digitare per suggerimenti
         </p>
         
         <div className="section-title" style={{ marginTop: 0 }}>Multimetro</div>
         <div className="strumenti-row">
           <div className="form-group">
             <label>ID Strumento</label>
-            <input
-              type="text"
-              placeholder="ID-xxxxxx"
+            <StrumentiAutocomplete
+              tipo="multimetro"
               value={state.strumenti.multId}
-              onChange={(e) => onUpdateStrumenti('multId', e.target.value)}
+              scadenza={state.strumenti.multScad}
+              onChangeId={(value) => onUpdateStrumenti('multId', value)}
+              onChangeScadenza={(value) => onUpdateStrumenti('multScad', value)}
+              placeholder="ID-xxxxxx"
             />
           </div>
           <div className="form-group">
@@ -92,11 +99,13 @@ function Home({
         <div className="strumenti-row">
           <div className="form-group">
             <label>ID Strumento</label>
-            <input
-              type="text"
-              placeholder="ID-xxxxxx"
+            <StrumentiAutocomplete
+              tipo="densimetro"
               value={state.strumenti.densId}
-              onChange={(e) => onUpdateStrumenti('densId', e.target.value)}
+              scadenza={state.strumenti.densScad}
+              onChangeId={(value) => onUpdateStrumenti('densId', value)}
+              onChangeScadenza={(value) => onUpdateStrumenti('densScad', value)}
+              placeholder="ID-xxxxxx"
             />
           </div>
           <div className="form-group">

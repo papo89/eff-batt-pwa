@@ -1,6 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { vibrateError, vibrateWarning } from '../utils/feedback';
 
 function Toast({ show, message, type, onClose }) {
+  useEffect(() => {
+    if (show) {
+      if (type === 'danger') {
+        vibrateError();
+      } else if (type === 'warning') {
+        vibrateWarning();
+      }
+    }
+  }, [show, type]);
+
   if (!show) return null;
 
   return (

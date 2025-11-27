@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { getReports } from '../utils/storage';
+import { getReports, markMultipleReportsAsShared } from '../utils/storage';
 import { shareMultiplePDFs } from '../utils/pdfGenerator';
+import { vibrateShort, vibrateSuccess } from '../utils/feedback';
 
 function ShareModal({ show, state, pdfBytes, onClose, showToast }) {
   const [reports, setReports] = useState([]);
@@ -28,6 +29,7 @@ function ShareModal({ show, state, pdfBytes, onClose, showToast }) {
   };
 
   const toggleSelect = (id) => {
+    vibrateShort();
     setSelected(prev => 
       prev.includes(id) 
         ? prev.filter(i => i !== id)
@@ -36,6 +38,7 @@ function ShareModal({ show, state, pdfBytes, onClose, showToast }) {
   };
 
   const selectAll = () => {
+    vibrateShort();
     if (selected.length === reports.length) {
       setSelected([]);
     } else {
@@ -53,6 +56,9 @@ function ShareModal({ show, state, pdfBytes, onClose, showToast }) {
     const success = await shareMultiplePDFs(toShare);
     
     if (success) {
+      // Marca i report come condivisi
+      await markMultipleReportsAsShared(selected);
+      vibrateSuccess();
       showToast(`✅ ${toShare.length} report condivisi!`, 'success');
       onClose();
     }

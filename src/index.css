@@ -1496,3 +1496,318 @@ body {
   color: var(--primary);
   font-weight: 600;
 }
+
+/* ==================== BADGE COUNT (Header) ==================== */
+.header-btn {
+  position: relative;
+}
+
+.badge-count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #ea4335;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 2px solid var(--primary);
+  line-height: 1;
+}
+
+/* ==================== SUCCESS POPUP ==================== */
+.success-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+.success-popup-content {
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 32px 24px;
+  text-align: center;
+  max-width: 320px;
+  width: 100%;
+  animation: scaleIn 0.2s ease;
+}
+
+.success-popup-icon {
+  font-size: 56px;
+  margin-bottom: 16px;
+}
+
+.success-popup-content h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  color: var(--text);
+}
+
+.success-popup-content p {
+  margin: 0 0 24px;
+  font-size: 14px;
+  color: var(--text-light);
+}
+
+.success-popup-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.success-popup-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 12px;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.success-popup-btn:active {
+  transform: scale(0.95);
+}
+
+.success-popup-btn.share {
+  background: var(--primary);
+  color: white;
+}
+
+.success-popup-btn.home {
+  background: var(--border);
+  color: var(--text);
+}
+
+.success-popup-btn-icon {
+  font-size: 24px;
+}
+
+/* ==================== NOTIFICATION TIMES ==================== */
+.notification-times {
+  padding: 0 16px 16px 52px;
+}
+
+.time-setting {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.time-setting:last-child {
+  border-bottom: none;
+}
+
+.time-setting label {
+  font-size: 13px;
+  color: var(--text-light);
+}
+
+.time-inputs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.time-inputs select {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--card-bg);
+  color: var(--text);
+  font-size: 14px;
+  min-width: 55px;
+}
+
+.time-inputs span {
+  font-weight: bold;
+  color: var(--text-light);
+}
+
+/* ==================== TRANSITIONS & ANIMATIONS ==================== */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slideInUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Modal transitions */
+.share-modal.show .share-modal-content,
+.success-popup-content {
+  animation: slideInUp 0.2s ease;
+}
+
+.hamburger-menu.show .hamburger-content {
+  animation: slideInRight 0.3s ease;
+}
+
+/* Toast transition */
+.toast-container.show .toast-overlay {
+  animation: scaleIn 0.2s ease;
+}
+
+/* Button tap effect */
+.btn:active,
+.esito-btn:active,
+.icon-btn:active {
+  transform: scale(0.95);
+  transition: transform 0.1s ease;
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ==================== TEXT SIZE CLASSES ==================== */
+/* Small (12px base) */
+.text-small {
+  font-size: 12px;
+}
+
+.text-small .card h2 {
+  font-size: 14px;
+}
+
+.text-small .section-title {
+  font-size: 12px;
+}
+
+.text-small input,
+.text-small select,
+.text-small .btn,
+.text-small textarea {
+  font-size: 12px;
+  padding: 8px 10px;
+}
+
+.text-small .form-group label {
+  font-size: 10px;
+}
+
+.text-small .vehicle-info h4,
+.text-small .sede-header h3 {
+  font-size: 12px;
+}
+
+/* Normal (16px base) */
+.text-normal {
+  font-size: 16px;
+}
+
+.text-normal .card h2 {
+  font-size: 18px;
+}
+
+.text-normal .section-title {
+  font-size: 15px;
+}
+
+.text-normal input,
+.text-normal select,
+.text-normal .btn,
+.text-normal textarea {
+  font-size: 16px;
+  padding: 12px 14px;
+}
+
+.text-normal .form-group label {
+  font-size: 13px;
+}
+
+.text-normal .vehicle-info h4,
+.text-normal .sede-header h3 {
+  font-size: 15px;
+}
+
+/* Large (20px base) */
+.text-large {
+  font-size: 20px;
+}
+
+.text-large .card h2 {
+  font-size: 22px;
+}
+
+.text-large .section-title {
+  font-size: 18px;
+}
+
+.text-large input,
+.text-large select,
+.text-large .btn,
+.text-large textarea {
+  font-size: 20px;
+  padding: 14px 18px;
+}
+
+.text-large .form-group label {
+  font-size: 16px;
+}
+
+.text-large .vehicle-info h4,
+.text-large .sede-header h3 {
+  font-size: 18px;
+}
+
+/* ==================== ICON SIZES (40x40 for touch) ==================== */
+.header-btn {
+  width: 40px;
+  height: 40px;
+  font-size: 20px;
+}
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  font-size: 18px;
+}
+
+.share-item input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+}

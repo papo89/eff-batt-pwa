@@ -47,6 +47,8 @@ function Home({
             <label>CID</label>
             <input
               type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               placeholder="123456"
               value={state.operatore.cid}
               onChange={(e) => onUpdateOperatore('cid', e.target.value)}

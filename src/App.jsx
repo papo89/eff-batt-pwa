@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { loadState, saveState, getDefaultState, loadPdfTemplate, savePdfTemplate, loadSettings, saveSettings, getDefaultSettings } from './utils/storage';
+import { loadState, saveState, getDefaultState, loadPdfTemplate, savePdfTemplate, loadSettings, saveSettings, getDefaultSettings, getUnsharedReportsCount } from './utils/storage';
 import { initNotifications } from './utils/notifications';
 import Header from './components/Header';
 import Home from './components/Home';
@@ -24,6 +24,7 @@ function App() {
   const [toast, setToast] = useState({ show: false, message: '', type: 'warning' });
   const [showShareModal, setShowShareModal] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [unsharedCount, setUnsharedCount] = useState(0);
 
   // Carica stato, settings e PDF all'avvio
   useEffect(() => {
@@ -44,9 +45,18 @@ function App() {
 
       // Inizializza notifiche
       initNotifications();
+      
+      // Carica contatore report non condivisi
+      refreshUnsharedCount();
     };
     init();
   }, []);
+
+  // Aggiorna contatore report non condivisi
+  const refreshUnsharedCount = async () => {
+    const count = await getUnsharedReportsCount();
+    setUnsharedCount(count);
+  };
 
   // Salva stato ad ogni modifica
   useEffect(() => {
@@ -185,6 +195,8 @@ function App() {
       newSedi[sedeIdx].veicoli[vehicleIdx].pdfGenerated = true;
       return { ...prev, sedi: newSedi };
     });
+    // Aggiorna contatore dopo generazione PDF
+    refreshUnsharedCount();
   };
 
   // ==================== PDF HANDLERS ====================
@@ -211,6 +223,16 @@ function App() {
 
   const hideToast = () => {
     setToast({ show: false, message: '', type: 'warning' });
+  };
+
+  // ==================== SHARE MODAL ====================
+  const openShareModal = () => {
+    setShowShareModal(true);
+  };
+
+  const closeShareModal = () => {
+    setShowShareModal(false);
+    refreshUnsharedCount();
   };
 
   // ==================== NAVIGATION ====================
@@ -242,8 +264,9 @@ function App() {
   return (
     <>
       <Header 
-        onShare={() => setShowShareModal(true)} 
+        onShare={openShareModal} 
         onMenuToggle={() => setShowMenu(true)}
+        unsharedCount={unsharedCount}
       />
       
       {screen === 'home' && (
@@ -267,6 +290,7 @@ function App() {
           sede={editingSede !== null ? state.sedi[editingSede] : null}
           onSave={(sede) => editingSede !== null ? updateSede(editingSede, sede) : addSede(sede)}
           onCancel={() => { setEditingSede(null); setScreen('home'); }}
+          showToast={showToast}
         />
       )}
 
@@ -279,6 +303,7 @@ function App() {
           onUpdateData={(data) => updateVehicleData(currentSede, currentVehicle, data)}
           onPdfGenerated={() => markVehiclePdfGenerated(currentSede, currentVehicle)}
           onBack={() => { setCurrentSede(null); setCurrentVehicle(null); setScreen('home'); }}
+          onOpenShare={openShareModal}
           showToast={showToast}
         />
       )}
@@ -297,6 +322,7 @@ function App() {
             }
           }}
           onCancel={() => setEditingVehicle(null)}
+          showToast={showToast}
         />
       )}
 
@@ -311,7 +337,7 @@ function App() {
         show={showShareModal}
         state={state}
         pdfBytes={pdfBytes}
-        onClose={() => setShowShareModal(false)}
+        onClose={closeShareModal}
         showToast={showToast}
       />
 

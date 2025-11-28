@@ -1,19 +1,35 @@
 import React, { useState } from 'react';
+import { validaNumeroVeicolo } from '../utils/validation';
+import { vibrateShort, vibrateError } from '../utils/feedback';
 
-function VehicleModal({ vehicle, sedeVeicoliCount, onSave, onCancel }) {
+function VehicleModal({ vehicle, sedeVeicoliCount, onSave, onCancel, showToast }) {
   const [numero, setNumero] = useState(vehicle?.numero || '');
   const [tipo, setTipo] = useState(vehicle?.tipo || '3M');
 
   const handleSave = () => {
     if (!numero.trim()) {
-      alert('Inserisci il numero del veicolo');
+      vibrateError();
+      showToast('Inserisci il numero del veicolo', 'danger');
       return;
     }
+    
+    // Validazione EVN
+    const risultato = validaNumeroVeicolo(numero.trim());
+    if (!risultato.valido) {
+      vibrateError();
+      showToast(risultato.errore, 'danger');
+      return;
+    }
+    
     if (!vehicle && sedeVeicoliCount >= 8) {
-      alert('Massimo 8 veicoli per sede');
+      vibrateError();
+      showToast('Massimo 8 veicoli per sede', 'danger');
       return;
     }
-    onSave({ numero: numero.trim(), tipo });
+    
+    vibrateShort();
+    // Salva con numero formattato (con trattino)
+    onSave({ numero: risultato.formattato, tipo });
   };
 
   return (
@@ -23,10 +39,12 @@ function VehicleModal({ vehicle, sedeVeicoliCount, onSave, onCancel }) {
         <h3>🚃 {vehicle ? 'Modifica Veicolo' : 'Nuovo Veicolo'}</h3>
         
         <div className="form-group">
-          <label>Numero Veicolo</label>
+          <label>Numero Veicolo (12 cifre)</label>
           <input
             type="text"
-            placeholder="Es: 50832187123-4"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            placeholder="508321876056"
             value={numero}
             onChange={(e) => setNumero(e.target.value)}
             autoFocus

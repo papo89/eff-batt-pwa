@@ -239,3 +239,177 @@ export function getScadenzaColor(giorni) {
   if (giorni <= 10) return 'warning-high'; // Arancione
   return 'warning';                       // Giallo
 }
+
+// ==================== VALIDAZIONE EVN (Numero Veicolo) ====================
+/**
+ * Calcola il check digit EVN con algoritmo di Luhn modificato
+ * @param {string} numero - Prime 11 cifre del numero veicolo
+ * @returns {number} - Check digit (0-9)
+ */
+export function calcolaCheckDigitEVN(numero) {
+  const cifre = numero.replace(/\D/g, '').slice(0, 11);
+  
+  if (cifre.length !== 11) return null;
+  
+  let somma = 0;
+  
+  for (let i = 0; i < 11; i++) {
+    let cifra = parseInt(cifre[i], 10);
+    
+    // Posizioni dispari (1, 3, 5, 7, 9, 11) → indici 0, 2, 4, 6, 8, 10
+    if (i % 2 === 0) {
+      cifra *= 2;
+      if (cifra > 9) cifra -= 9;
+    }
+    
+    somma += cifra;
+  }
+  
+  return (10 - (somma % 10)) % 10;
+}
+
+/**
+ * Valida numero veicolo EVN completo (12 cifre)
+ * @param {string} numero - Numero veicolo (con o senza trattino)
+ * @returns {object} - { valido: boolean, errore: string, formattato: string }
+ */
+export function validaNumeroVeicolo(numero) {
+  const soloNumeri = numero.replace(/[\s-]/g, '');
+  
+  if (soloNumeri.length !== 12) {
+    return {
+      valido: false,
+      errore: `Il numero veicolo deve avere 12 cifre (inserite: ${soloNumeri.length})`,
+      formattato: numero
+    };
+  }
+  
+  if (!/^\d{12}$/.test(soloNumeri)) {
+    return {
+      valido: false,
+      errore: 'Il numero veicolo deve contenere solo cifre',
+      formattato: numero
+    };
+  }
+  
+  const prime11 = soloNumeri.slice(0, 11);
+  const checkDigitInserito = parseInt(soloNumeri[11], 10);
+  const checkDigitCorretto = calcolaCheckDigitEVN(prime11);
+  const formattato = `${prime11}-${checkDigitInserito}`;
+  
+  if (checkDigitInserito !== checkDigitCorretto) {
+    return {
+      valido: false,
+      errore: `Check digit errato. Inserito: ${checkDigitInserito}, corretto: ${checkDigitCorretto}`,
+      formattato: formattato
+    };
+  }
+  
+  return {
+    valido: true,
+    errore: null,
+    formattato: formattato
+  };
+}
+
+// ==================== VALIDAZIONE ODL ====================
+/**
+ * Valida ODL
+ * @param {string} odl - Numero ODL
+ * @returns {object} - { valido: boolean, errore: string }
+ */
+export function validaODL(odl) {
+  const odlPulito = odl.replace(/\s/g, '');
+  
+  if (!/^\d+$/.test(odlPulito)) {
+    return {
+      valido: false,
+      errore: 'L\'ODL deve contenere solo numeri'
+    };
+  }
+  
+  if (odlPulito.length !== 12) {
+    return {
+      valido: false,
+      errore: `L'ODL deve avere 12 cifre (inserite: ${odlPulito.length})`
+    };
+  }
+  
+  if (!odlPulito.startsWith('1000')) {
+    return {
+      valido: false,
+      errore: 'L\'ODL deve iniziare con 1000'
+    };
+  }
+  
+  return {
+    valido: true,
+    errore: null
+  };
+}
+
+// ==================== VALIDAZIONE DENSITÀ SINGOLA ====================
+/**
+ * Valida singolo valore densità
+ * @param {string} valore - Valore densità inserito
+ * @returns {object} - { valido: boolean, errore: string, valoreNumerico: number }
+ */
+export function validaSingolaDensita(valore) {
+  if (!valore || valore.toString().trim() === '') {
+    return {
+      valido: false,
+      errore: 'Valore densità mancante',
+      valoreNumerico: null
+    };
+  }
+  
+  const valorePulito = valore.toString().replace(',', '.');
+  const numero = parseFloat(valorePulito);
+  
+  if (isNaN(numero)) {
+    return {
+      valido: false,
+      errore: 'Valore densità non valido',
+      valoreNumerico: null
+    };
+  }
+  
+  if (numero < 1.01 || numero > 1.40) {
+    return {
+      valido: false,
+      errore: `Densità fuori range (${numero}). Deve essere tra 1.01 e 1.40`,
+      valoreNumerico: numero
+    };
+  }
+  
+  return {
+    valido: true,
+    errore: null,
+    valoreNumerico: numero
+  };
+}
+
+/**
+ * Valida tutti i valori densità di un pacco
+ * @param {object} data - Dati veicolo
+ * @param {string} prefix - Prefisso campo (d1_, d2_)
+ * @param {number} paccoNum - Numero pacco (1 o 2)
+ * @returns {array} - Array di errori
+ */
+export function validaDensitaPacco(data, prefix, paccoNum) {
+  const errori = [];
+  
+  for (let i = 1; i <= 12; i++) {
+    const campo = `${prefix}${i}`;
+    const valore = data[campo];
+    
+    if (valore) {
+      const risultato = validaSingolaDensita(valore);
+      if (!risultato.valido) {
+        errori.push(`Pacco ${paccoNum}, elemento ${i}: ${risultato.errore}`);
+      }
+    }
+  }
+  
+  return errori;
+}

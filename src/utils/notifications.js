@@ -1,6 +1,6 @@
 // Gestione notifiche programmate
-import { getNotificationTime, isWeekendOrHoliday } from './holidays';
-import { getUnsharedReportsCount } from './storage';
+import { getNotificationTime as getHolidayNotificationTime, isWeekendOrHoliday } from './holidays';
+import { getUnsharedReportsCount, loadSettings } from './storage';
 
 let notificationTimeout = null;
 
@@ -71,6 +71,18 @@ export async function showUnsharedReportsNotification() {
 }
 
 /**
+ * Ottiene l'orario di notifica per una data (da settings utente)
+ */
+export function getNotificationTime(date) {
+  const settings = loadSettings();
+  
+  if (isWeekendOrHoliday(date)) {
+    return settings.notificationTimeHoliday || { hour: 12, minute: 50 };
+  }
+  return settings.notificationTimeWorkday || { hour: 15, minute: 15 };
+}
+
+/**
  * Calcola il prossimo orario di notifica
  */
 export function getNextNotificationTime() {
@@ -106,6 +118,12 @@ export function scheduleNextNotification() {
     clearTimeout(notificationTimeout);
   }
   
+  const settings = loadSettings();
+  if (!settings.notificationsEnabled) {
+    console.log('Notifiche disabilitate nelle impostazioni');
+    return;
+  }
+  
   const nextTime = getNextNotificationTime();
   const now = new Date();
   const delay = nextTime.getTime() - now.getTime();
@@ -123,6 +141,13 @@ export function scheduleNextNotification() {
  * Inizializza il sistema di notifiche
  */
 export async function initNotifications() {
+  const settings = loadSettings();
+  
+  if (!settings.notificationsEnabled) {
+    console.log('Notifiche disabilitate nelle impostazioni');
+    return;
+  }
+  
   const hasPermission = await requestNotificationPermission();
   
   if (hasPermission) {
@@ -140,5 +165,6 @@ export function stopNotifications() {
   if (notificationTimeout) {
     clearTimeout(notificationTimeout);
     notificationTimeout = null;
+    console.log('Sistema notifiche fermato');
   }
 }

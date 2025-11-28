@@ -117,7 +117,10 @@ export function getDefaultSettings() {
     textSize: 'normal',      // 'small', 'normal', 'large'
     boldText: false,
     vibrationEnabled: true,
-    keepScreenOn: false
+    keepScreenOn: false,
+    notificationsEnabled: true,
+    notificationTimeWorkday: { hour: 15, minute: 15 },
+    notificationTimeHoliday: { hour: 12, minute: 50 }
   };
 }
 

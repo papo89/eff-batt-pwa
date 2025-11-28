@@ -1,14 +1,28 @@
 import React, { useState } from 'react';
+import { validaODL } from '../utils/validation';
+import { vibrateShort, vibrateError } from '../utils/feedback';
 
-function SedeForm({ sede, onSave, onCancel }) {
+function SedeForm({ sede, onSave, onCancel, showToast }) {
   const [nome, setNome] = useState(sede?.nome || '');
   const [odl, setOdl] = useState(sede?.odl || '');
 
   const handleSave = () => {
     if (!nome.trim()) {
-      alert('Inserisci il nome della sede');
+      vibrateError();
+      showToast('Inserisci il nome della sede', 'danger');
       return;
     }
+    
+    if (odl.trim()) {
+      const risultatoODL = validaODL(odl.trim());
+      if (!risultatoODL.valido) {
+        vibrateError();
+        showToast(risultatoODL.errore, 'danger');
+        return;
+      }
+    }
+    
+    vibrateShort();
     onSave({ nome: nome.trim(), odl: odl.trim() });
   };
 
@@ -33,7 +47,9 @@ function SedeForm({ sede, onSave, onCancel }) {
           <label>ODL</label>
           <input
             type="text"
-            placeholder="123456"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            placeholder="100012345678"
             value={odl}
             onChange={(e) => setOdl(e.target.value)}
           />

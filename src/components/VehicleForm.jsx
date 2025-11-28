@@ -5,13 +5,15 @@ import {
   validateScadenzeStrumenti,
   getMissingFields,
   formatDataProduzione,
-  formatDate
+  formatDate,
+  validaDensitaPacco
 } from '../utils/validation';
-import { generatePDF, getFilename, getReportId, sharePDF } from '../utils/pdfGenerator';
+import { generatePDF, getFilename, getReportId } from '../utils/pdfGenerator';
 import { saveReport, loadSettings } from '../utils/storage';
 import { vibrateShort, vibrateSuccess, vibrateError } from '../utils/feedback';
+import SuccessPopup from './SuccessPopup';
 
-function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdfGenerated, onBack, showToast }) {
+function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdfGenerated, onBack, onOpenShare, showToast }) {
   const sede = state.sedi[sedeIdx];
   const vehicle = sede.veicoli[vehicleIdx];
   const data = vehicle.data || {};
@@ -23,6 +25,7 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
     : [{ id: 'batterie', title: '🔋 Batterie' }, { id: 'misure', title: '📊 Misurazioni' }, { id: 'densita', title: '💧 Densità' }, { id: 'esito', title: '✅ Esito' }];
 
   const [currentStep, setCurrentStep] = useState(0);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const step = steps[currentStep];
 
   // Wake Lock per schermo acceso
@@ -86,6 +89,18 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
 
     // Validazioni per step densità
     if (step.id === 'densita') {
+      // Validazione range 1.01-1.40
+      const erroriPacco1 = validaDensitaPacco(data, 'p1e', 1);
+      const erroriPacco2 = validaDensitaPacco(data, 'p2e', 2);
+      const erroriRange = [...erroriPacco1, ...erroriPacco2];
+      
+      if (erroriRange.length > 0) {
+        vibrateError();
+        showToast(erroriRange.join('<br>'), 'danger');
+        return;
+      }
+      
+      // Validazione differenza max-min
       const warnings = validateDensita(data);
       if (warnings.length > 0) {
         vibrateError();
@@ -142,19 +157,26 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
 
       onPdfGenerated();
       vibrateSuccess();
-
-      // Prova a condividere, altrimenti download
-      const shared = await sharePDF(pdfBytesOut, filename);
-      if (shared) {
-        showToast(`✅ Report "${filename}" generato!`, 'success');
-      }
-
-      onBack();
+      
+      // Mostra popup invece di condivisione automatica
+      setShowSuccessPopup(true);
     } catch (e) {
       console.error('Errore generazione PDF:', e);
       vibrateError();
       showToast('Errore generazione PDF: ' + e.message, 'danger');
     }
+  };
+
+  // Handler popup success
+  const handleGoToShare = () => {
+    setShowSuccessPopup(false);
+    onBack();
+    if (onOpenShare) onOpenShare();
+  };
+
+  const handleGoHome = () => {
+    setShowSuccessPopup(false);
+    onBack();
   };
 
   // ==================== RENDER STEPS ====================
@@ -166,6 +188,7 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
           <label>Data Produzione</label>
           <input
             type="text"
+            inputMode="numeric"
             placeholder="MM/AAAA"
             maxLength={7}
             value={data.b1Data || ''}
@@ -206,6 +229,7 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
           <label>Data Produzione</label>
           <input
             type="text"
+            inputMode="numeric"
             placeholder="MM/AAAA"
             maxLength={7}
             value={data.b2Data || ''}
@@ -249,8 +273,8 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
         <div className="form-group">
           <label>V Multi</label>
           <input
-            type="number"
-            step="0.01"
+            type="text"
+            inputMode="decimal"
             value={data[`${prefix}Vm`] || ''}
             onChange={(e) => updateField(`${prefix}Vm`, e.target.value)}
           />
@@ -258,8 +282,8 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
         <div className="form-group">
           <label>V Vettura</label>
           <input
-            type="number"
-            step="0.01"
+            type="text"
+            inputMode="decimal"
             value={data[`${prefix}Vv`] || ''}
             onChange={(e) => updateField(`${prefix}Vv`, e.target.value)}
           />
@@ -267,8 +291,8 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
         <div className="form-group">
           <label>I Vettura</label>
           <input
-            type="number"
-            step="0.01"
+            type="text"
+            inputMode="numeric"
             value={data[`${prefix}Iv`] || ''}
             onChange={(e) => updateField(`${prefix}Iv`, e.target.value)}
           />
@@ -294,7 +318,8 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
           <div className="form-group" key={i}>
             <label>{i + 1}</label>
             <input
-              type="number"
+              type="text"
+              inputMode="decimal"
               value={data[`${prefix}${i + 1}`] || ''}
               onChange={(e) => updateField(`${prefix}${i + 1}`, e.target.value)}
             />
@@ -313,8 +338,8 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
 
   const renderDensita = () => (
     <>
-      {renderDensitaGrid('p1e', '💧 Densità Pacco 1 (g/l)')}
-      {renderDensitaGrid('p2e', '💧 Densità Pacco 2 (g/l)')}
+      {renderDensitaGrid('p1e', '💧 Densità Pacco 1 (1.01 - 1.40)')}
+      {renderDensitaGrid('p2e', '💧 Densità Pacco 2 (1.01 - 1.40)')}
     </>
   );
 
@@ -413,6 +438,12 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
           )}
         </div>
       </div>
+
+      <SuccessPopup
+        show={showSuccessPopup}
+        onShare={handleGoToShare}
+        onHome={handleGoHome}
+      />
     </div>
   );
 }

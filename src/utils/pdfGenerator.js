@@ -68,17 +68,17 @@ export async function generatePDF(pdfBytes, state, sedeIdx, vehicleIdx) {
   // ID.4 - Inizio scarica
   setField('Text18', d.id4Vm);
   setField('Text19', d.id4Vv);
-  setField('Text20', d.id4Iv);
+  setField('Text20', d.id4Iv ? `-${d.id4Iv}`.replace('--', '-') : '');
 
   // ID.5 - Durante scarica
   setField('Text21', d.id5Vm);
   setField('Text22', d.id5Vv);
-  setField('Text23', d.id5Iv);
+  setField('Text23', d.id5Iv ? `-${d.id5Iv}`.replace('--', '-') : '');
 
   // ID.6 - Fine scarica
   setField('Text24', d.id6Vm);
   setField('Text25', d.id6Vv);
-  setField('Text26', d.id6Iv);
+  setField('Text26', d.id6Iv ? `-${d.id6Iv}`.replace('--', '-') : '');
 
   // PAGINA 2 - Densimetro
   setField('Text28', str.densId);

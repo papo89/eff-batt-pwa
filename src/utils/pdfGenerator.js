@@ -12,12 +12,27 @@ export async function generatePDF(pdfBytes, state, sedeIdx, vehicleIdx) {
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const form = pdfDoc.getForm();
 
-  // Helper function to set text field
+  // Helper function to set text field and remove background/border
   function setField(name, value) {
     if (!value) return;
     try {
       const field = form.getTextField(name);
       field.setText(String(value));
+      
+      // Rimuovi sfondo e bordo dal campo
+      const widgets = field.acroField.getWidgets();
+      widgets.forEach(widget => {
+        // Rimuove il background color
+        widget.dict.delete('BS'); // Border Style
+        widget.dict.delete('Border');
+        
+        // Imposta appearance senza sfondo
+        const mkDict = widget.dict.get('MK');
+        if (mkDict) {
+          mkDict.delete('BG'); // Background color
+          mkDict.delete('BC'); // Border color
+        }
+      });
     } catch (e) {
       console.log('Field not found:', name);
     }
@@ -102,14 +117,48 @@ export async function generatePDF(pdfBytes, state, sedeIdx, vehicleIdx) {
   setField('Text57', op.cid);
   setField('Text58', formatDate(op.data));
 
-  // Note
-  setField('Text59', d.note);
-
-  // Esito - overlay X sulla checkbox
+  // Note - rimuovi il campo form e scrivi direttamente con word wrap
   const pages = pdfDoc.getPages();
   const page2 = pages[1];
   const color = rgb(0, 0, 0);
 
+  if (d.note) {
+    // Rimuovi il campo note dal form (non lo usiamo)
+    try {
+      const noteField = form.getTextField('Text59');
+      form.removeField(noteField);
+    } catch (e) {
+      // Campo non trovato, va bene
+    }
+
+    // Word wrap e scrivi direttamente
+    const noteX = 57;      // Coordinata X inizio note
+    const noteY = 195;     // Coordinata Y inizio note (dall'alto)
+    const maxWidth = 500;  // Larghezza massima in punti
+    const lineHeight = 11; // Altezza riga
+    const fontSize = 9;    // Dimensione font
+    const maxLines = 4;    // Numero massimo righe
+
+    const lines = wrapText(d.note, font, fontSize, maxWidth);
+    
+    lines.slice(0, maxLines).forEach((line, i) => {
+      page2.drawText(line, {
+        x: noteX,
+        y: noteY - (i * lineHeight),
+        size: fontSize,
+        font,
+        color
+      });
+    });
+  } else {
+    // Rimuovi comunque il campo note vuoto
+    try {
+      const noteField = form.getTextField('Text59');
+      form.removeField(noteField);
+    } catch (e) {}
+  }
+
+  // Esito - overlay X sulla checkbox
   if (d.esito === 'POSITIVO') {
     page2.drawText('X', { x: 108, y: 128, size: 14, font, color });
   } else if (d.esito === 'NEGATIVO') {
@@ -118,6 +167,31 @@ export async function generatePDF(pdfBytes, state, sedeIdx, vehicleIdx) {
 
   form.flatten();
   return await pdfDoc.save();
+}
+
+// Funzione per word wrap del testo
+function wrapText(text, font, fontSize, maxWidth) {
+  const words = text.split(' ');
+  const lines = [];
+  let currentLine = '';
+
+  for (const word of words) {
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    const width = font.widthOfTextAtSize(testLine, fontSize);
+
+    if (width > maxWidth && currentLine) {
+      lines.push(currentLine);
+      currentLine = word;
+    } else {
+      currentLine = testLine;
+    }
+  }
+
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+
+  return lines;
 }
 
 export function getFilename(vehicle, operatore) {

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { isVehicleComplete, checkScadenzePreventive } from '../utils/validation';
 import ScadenzeAlert from './ScadenzeAlert';
 import StrumentiAutocomplete from './StrumentiAutocomplete';
@@ -16,7 +16,10 @@ function Home({
   onOpenVehicle,
   showToast
 }) {
-  
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
+
   // Controllo scadenze preventive onBlur
   const handleScadenzaBlur = () => {
     const warnings = checkScadenzePreventive(state.strumenti, state.operatore);
@@ -25,8 +28,29 @@ function Home({
     }
   };
 
-  return (
-    <div className="container">
+  // Swipe handlers
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    const diff = touchStartX.current - touchEndX.current;
+    const threshold = 50;
+
+    if (diff > threshold && currentSlide < 1) {
+      setCurrentSlide(1); // Swipe left → Sedi
+    } else if (diff < -threshold && currentSlide > 0) {
+      setCurrentSlide(0); // Swipe right → Info
+    }
+  };
+
+  // Render Info slide
+  const renderInfoSlide = () => (
+    <div className="slide-content">
       {/* Banner Scadenze Imminenti */}
       <ScadenzeAlert strumenti={state.strumenti} />
 
@@ -122,6 +146,16 @@ function Home({
         </div>
       </div>
 
+      {/* Hint swipe */}
+      <div className="swipe-hint-box">
+        <span>Scorri per vedere le Sedi →</span>
+      </div>
+    </div>
+  );
+
+  // Render Sedi slide
+  const renderSediSlide = () => (
+    <div className="slide-content">
       {/* Sedi Tecniche */}
       <h2 style={{ fontSize: '16px', color: 'var(--primary)', marginBottom: '12px' }}>
         🚃🚃🚃 Sedi Tecniche
@@ -236,6 +270,47 @@ function Home({
       <button className="btn btn-primary" onClick={onAddSede}>
         ➕ Aggiungi Sede Tecnica e ODL
       </button>
+
+      {/* Hint swipe */}
+      <div className="swipe-hint-box">
+        <span>← Scorri per vedere Info</span>
+      </div>
+    </div>
+  );
+
+  return (
+    <div 
+      className="home-swipe-container"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* Slides wrapper */}
+      <div 
+        className="slides-wrapper"
+        style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+      >
+        <div className="slide">
+          {renderInfoSlide()}
+        </div>
+        <div className="slide">
+          {renderSediSlide()}
+        </div>
+      </div>
+
+      {/* Dots overlay con gradient */}
+      <div className="dots-overlay">
+        <div className="dots-container">
+          <div 
+            className={`dot ${currentSlide === 0 ? 'active' : ''}`}
+            onClick={() => setCurrentSlide(0)}
+          />
+          <div 
+            className={`dot ${currentSlide === 1 ? 'active' : ''}`}
+            onClick={() => setCurrentSlide(1)}
+          />
+        </div>
+      </div>
     </div>
   );
 }

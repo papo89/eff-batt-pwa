@@ -1933,13 +1933,27 @@ body {
 .vehicle-form-title {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   margin-bottom: 12px;
 }
 
 .vehicle-form-title h3 {
   margin: 0;
-  font-size: 16px;
+  font-size: 18px;
+}
+
+/* Dimensioni proporzionali al setting utente */
+.text-small .vehicle-form-title h3 {
+  font-size: 14px;
+}
+
+.text-normal .vehicle-form-title h3 {
+  font-size: 18px;
+}
+
+.text-large .vehicle-form-title h3 {
+  font-size: 22px;
 }
 
 .vehicle-form-header .steps {

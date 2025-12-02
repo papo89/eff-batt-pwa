@@ -1956,6 +1956,8 @@ body {
   display: flex;
   flex: 1;
   transition: transform 0.3s ease-out;
+  min-height: 0;
+  touch-action: pan-y;
 }
 
 .vehicle-slide {
@@ -1965,13 +1967,16 @@ body {
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 .vehicle-slide-content {
   max-width: 480px;
   margin: 0 auto;
   padding: 16px;
-  padding-bottom: 140px;
+  padding-bottom: 160px;
+  min-height: 100%;
 }
 
 .vehicle-nav-buttons {

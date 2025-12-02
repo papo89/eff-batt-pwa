@@ -30,7 +30,10 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
   
   // Swipe refs
   const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
   const touchEndX = useRef(0);
+  const touchEndY = useRef(0);
+  const isHorizontalSwipe = useRef(false);
 
   // Wake Lock per schermo acceso
   useEffect(() => {
@@ -126,16 +129,31 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
     setCurrentStep(prev => prev - 1);
   };
 
-  // Swipe handlers
+  // Swipe handlers - solo orizzontale, permette scroll verticale
   const handleTouchStart = (e) => {
     touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    isHorizontalSwipe.current = false;
   };
 
   const handleTouchMove = (e) => {
     touchEndX.current = e.touches[0].clientX;
+    touchEndY.current = e.touches[0].clientY;
+    
+    // Determina se è uno swipe orizzontale o verticale
+    const diffX = Math.abs(touchEndX.current - touchStartX.current);
+    const diffY = Math.abs(touchEndY.current - touchStartY.current);
+    
+    // Solo se il movimento orizzontale è maggiore di quello verticale
+    if (diffX > diffY && diffX > 20) {
+      isHorizontalSwipe.current = true;
+    }
   };
 
   const handleTouchEnd = () => {
+    // Solo se è uno swipe orizzontale significativo
+    if (!isHorizontalSwipe.current) return;
+    
     const diff = touchStartX.current - touchEndX.current;
     const threshold = 50;
 
@@ -416,12 +434,7 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
   );
 
   return (
-    <div 
-      className="vehicle-form-swipe-container"
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-    >
+    <div className="vehicle-form-swipe-container">
       <div className="vehicle-form-header">
         <span className="back-link" onClick={onBack}>← Indietro</span>
         
@@ -454,10 +467,13 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
         <h4 className="step-title">{step.title}</h4>
       </div>
 
-      {/* Slides wrapper */}
+      {/* Slides wrapper - touch events qui per permettere scroll verticale nelle slide */}
       <div 
         className="vehicle-slides-wrapper"
         style={{ transform: `translateX(-${currentStep * 100}vw)` }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         {steps.map((s, idx) => (
           <div className="vehicle-slide" key={s.id}>

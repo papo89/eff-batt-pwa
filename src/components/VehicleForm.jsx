@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   validateMisurazioni, 
   validateDensita, 
@@ -27,6 +27,10 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
   const [currentStep, setCurrentStep] = useState(0);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const step = steps[currentStep];
+  
+  // Swipe refs
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
 
   // Wake Lock per schermo acceso
   useEffect(() => {
@@ -76,14 +80,14 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
   };
 
   // Navigazione
-  const nextStep = () => {
+  const canGoNext = () => {
     // Validazioni per step misure
     if (step.id === 'misure') {
       const warnings = validateMisurazioni(data);
       if (warnings.length > 0) {
         vibrateError();
         showToast(warnings.join('<br>'), 'danger');
-        return;
+        return false;
       }
     }
 
@@ -97,7 +101,7 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
       if (erroriRange.length > 0) {
         vibrateError();
         showToast(erroriRange.join('<br>'), 'danger');
-        return;
+        return false;
       }
       
       // Validazione differenza max-min
@@ -105,10 +109,14 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
       if (warnings.length > 0) {
         vibrateError();
         showToast(warnings.join('<br>'), 'danger');
-        return;
+        return false;
       }
     }
+    return true;
+  };
 
+  const nextStep = () => {
+    if (!canGoNext()) return;
     vibrateShort();
     setCurrentStep(prev => prev + 1);
   };
@@ -116,6 +124,32 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
   const prevStep = () => {
     vibrateShort();
     setCurrentStep(prev => prev - 1);
+  };
+
+  // Swipe handlers
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    const diff = touchStartX.current - touchEndX.current;
+    const threshold = 50;
+
+    if (diff > threshold && currentStep < steps.length - 1) {
+      // Swipe left → prossimo step (con validazione)
+      if (canGoNext()) {
+        vibrateShort();
+        setCurrentStep(prev => prev + 1);
+      }
+    } else if (diff < -threshold && currentStep > 0) {
+      // Swipe right → step precedente
+      vibrateShort();
+      setCurrentStep(prev => prev - 1);
+    }
   };
 
   // Generazione PDF
@@ -381,22 +415,17 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
     </>
   );
 
-  const renderStepContent = () => {
-    switch (step.id) {
-      case 'batterie': return renderBatterie();
-      case 'misure': return renderMisure();
-      case 'densita': return renderDensita();
-      case 'esito': return renderEsito();
-      default: return null;
-    }
-  };
-
   return (
-    <div className="container">
-      <span className="back-link" onClick={onBack}>← Indietro</span>
-
-      <div className="card">
-        <div className="form-header">
+    <div 
+      className="vehicle-form-swipe-container"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      <div className="vehicle-form-header">
+        <span className="back-link" onClick={onBack}>← Indietro</span>
+        
+        <div className="vehicle-form-title">
           <h3>{vehicle.numero}</h3>
           <span className={`badge badge-${tipo.toLowerCase()}`}>
             {tipo === '3M' ? '3 Mesi' : '6 Mesi'}
@@ -409,17 +438,41 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
             <div 
               key={s.id} 
               className={`step ${i < currentStep ? 'completed' : ''} ${i === currentStep ? 'active' : ''}`}
+              onClick={() => {
+                if (i < currentStep) {
+                  vibrateShort();
+                  setCurrentStep(i);
+                } else if (i === currentStep + 1 && canGoNext()) {
+                  vibrateShort();
+                  setCurrentStep(i);
+                }
+              }}
             />
           ))}
         </div>
 
-        <h3 style={{ fontSize: '14px', marginBottom: '16px', color: 'var(--text)' }}>
-          {step.title}
-        </h3>
+        <h4 className="step-title">{step.title}</h4>
+      </div>
 
-        {renderStepContent()}
+      {/* Slides wrapper */}
+      <div 
+        className="vehicle-slides-wrapper"
+        style={{ transform: `translateX(-${currentStep * 100}vw)` }}
+      >
+        {steps.map((s, idx) => (
+          <div className="vehicle-slide" key={s.id}>
+            <div className="vehicle-slide-content">
+              {s.id === 'batterie' && renderBatterie()}
+              {s.id === 'misure' && renderMisure()}
+              {s.id === 'densita' && renderDensita()}
+              {s.id === 'esito' && renderEsito()}
+            </div>
+          </div>
+        ))}
+      </div>
 
-        {/* Navigation buttons */}
+      {/* Navigation buttons - fixed at bottom */}
+      <div className="vehicle-nav-buttons">
         <div className={`nav-buttons ${currentStep === 0 ? 'single' : ''}`}>
           {currentStep > 0 && (
             <button className="btn btn-secondary" onClick={prevStep}>
@@ -436,6 +489,27 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
               📄 Genera PDF
             </button>
           )}
+        </div>
+      </div>
+
+      {/* Dots indicator */}
+      <div className="vehicle-dots-overlay">
+        <div className="dots-container">
+          {steps.map((s, i) => (
+            <div 
+              key={s.id}
+              className={`dot ${i === currentStep ? 'active' : ''}`}
+              onClick={() => {
+                if (i < currentStep) {
+                  vibrateShort();
+                  setCurrentStep(i);
+                } else if (i === currentStep + 1 && canGoNext()) {
+                  vibrateShort();
+                  setCurrentStep(i);
+                }
+              }}
+            />
+          ))}
         </div>
       </div>
 

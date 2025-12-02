@@ -1,10 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { isVehicleComplete, checkScadenzePreventive } from '../utils/validation';
 import ScadenzeAlert from './ScadenzeAlert';
 import StrumentiAutocomplete from './StrumentiAutocomplete';
 
 function Home({ 
   state, 
+  initialSlide = 0,
   onUpdateOperatore, 
   onUpdateStrumenti,
   onAddSede,
@@ -16,9 +17,14 @@ function Home({
   onOpenVehicle,
   showToast
 }) {
-  const [currentSlide, setCurrentSlide] = useState(0);
+  const [currentSlide, setCurrentSlide] = useState(initialSlide);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
+
+  // Aggiorna slide quando cambia initialSlide
+  useEffect(() => {
+    setCurrentSlide(initialSlide);
+  }, [initialSlide]);
 
   // Controllo scadenze preventive onBlur
   const handleScadenzaBlur = () => {

@@ -1906,3 +1906,99 @@ body {
   border-radius: 20px;
   display: inline-block;
 }
+
+/* ==================== VEHICLE FORM SWIPE LAYOUT ==================== */
+.vehicle-form-swipe-container {
+  position: relative;
+  width: 100vw;
+  max-width: 100%;
+  height: calc(100vh - 56px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.vehicle-form-header {
+  background: var(--card);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.vehicle-form-header .back-link {
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+.vehicle-form-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.vehicle-form-title h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.vehicle-form-header .steps {
+  margin-bottom: 8px;
+}
+
+.vehicle-form-header .step-title {
+  font-size: 14px;
+  margin: 0;
+  color: var(--text);
+}
+
+.vehicle-slides-wrapper {
+  display: flex;
+  flex: 1;
+  transition: transform 0.3s ease-out;
+}
+
+.vehicle-slide {
+  width: 100vw;
+  min-width: 100vw;
+  flex-shrink: 0;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.vehicle-slide-content {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px;
+  padding-bottom: 140px;
+}
+
+.vehicle-nav-buttons {
+  position: fixed;
+  bottom: 50px;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to bottom, transparent 0%, var(--card) 30%);
+  padding: 20px 16px 16px;
+  z-index: 40;
+}
+
+.vehicle-nav-buttons .nav-buttons {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.vehicle-dots-overlay {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  background: var(--card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  border-top: 1px solid var(--border);
+}

@@ -25,6 +25,7 @@ function App() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [unsharedCount, setUnsharedCount] = useState(0);
+  const [homeInitialSlide, setHomeInitialSlide] = useState(0);
 
   // Carica stato, settings e PDF all'avvio
   useEffect(() => {
@@ -272,6 +273,7 @@ function App() {
       {screen === 'home' && (
         <Home
           state={state}
+          initialSlide={homeInitialSlide}
           onUpdateOperatore={updateOperatore}
           onUpdateStrumenti={updateStrumenti}
           onAddSede={() => openSedeForm()}
@@ -289,7 +291,7 @@ function App() {
         <SedeForm
           sede={editingSede !== null ? state.sedi[editingSede] : null}
           onSave={(sede) => editingSede !== null ? updateSede(editingSede, sede) : addSede(sede)}
-          onCancel={() => { setEditingSede(null); setScreen('home'); }}
+          onCancel={() => { setEditingSede(null); setHomeInitialSlide(1); setScreen('home'); }}
           showToast={showToast}
         />
       )}
@@ -302,7 +304,7 @@ function App() {
           pdfBytes={pdfBytes}
           onUpdateData={(data) => updateVehicleData(currentSede, currentVehicle, data)}
           onPdfGenerated={() => markVehiclePdfGenerated(currentSede, currentVehicle)}
-          onBack={() => { setCurrentSede(null); setCurrentVehicle(null); setScreen('home'); }}
+          onBack={() => { setCurrentSede(null); setCurrentVehicle(null); setHomeInitialSlide(1); setScreen('home'); }}
           onOpenShare={openShareModal}
           showToast={showToast}
         />

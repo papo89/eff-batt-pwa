@@ -288,7 +288,7 @@ function Home({
       {/* Slides wrapper */}
       <div 
         className="slides-wrapper"
-        style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+        style={{ transform: `translateX(-${currentSlide * 100}vw)` }}
       >
         <div className="slide">
           {renderInfoSlide()}

@@ -2,8 +2,9 @@ import React from 'react';
 
 function GuidaModal({ onClose }) {
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal guida-modal" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-overlay show">
+      <div className="modal-backdrop" onClick={onClose}></div>
+      <div className="modal-content guida-modal">
         <div className="modal-header">
           <h3>📖 Guida all'utilizzo</h3>
           <button className="modal-close" onClick={onClose}>✕</button>

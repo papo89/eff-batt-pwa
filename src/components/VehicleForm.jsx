@@ -95,16 +95,41 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
 
   // Riempi tutte le densità con il valore del primo elemento
   const fillDensita = (prefix) => {
-    const firstValue = data[`${prefix}1`];
+    let firstValue = data[`${prefix}1`];
     if (!firstValue) return;
+    
+    // Formatta il valore se necessario (es: 120 → 1.20)
+    if (!firstValue.includes('.') && !firstValue.includes(',')) {
+      const numValue = parseInt(firstValue, 10);
+      if (!isNaN(numValue) && numValue >= 101 && numValue <= 140) {
+        firstValue = (numValue / 100).toFixed(2);
+      }
+    }
     
     vibrateShort();
     
     const updates = {};
-    for (let i = 2; i <= 12; i++) {
+    // Aggiorna tutti i 12 elementi, incluso il primo (per formattarlo)
+    for (let i = 1; i <= 12; i++) {
       updates[`${prefix}${i}`] = firstValue;
     }
     onUpdateData(updates);
+  };
+
+  // Formatta automaticamente valore densità (es: 120 → 1.20)
+  const formatDensitaValue = (field) => {
+    const value = data[field];
+    if (!value) return;
+    
+    // Se è già formattato con punto, non fare nulla
+    if (value.includes('.') || value.includes(',')) return;
+    
+    // Se è un numero intero tra 101 e 140, converti in decimale
+    const numValue = parseInt(value, 10);
+    if (!isNaN(numValue) && numValue >= 101 && numValue <= 140) {
+      const formatted = (numValue / 100).toFixed(2);
+      updateField(field, formatted);
+    }
   };
 
   // Navigazione
@@ -409,6 +434,7 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
               inputMode="decimal"
               value={data[`${prefix}${i + 1}`] || ''}
               onChange={(e) => updateField(`${prefix}${i + 1}`, e.target.value)}
+              onBlur={() => formatDensitaValue(`${prefix}${i + 1}`)}
             />
           </div>
         ))}

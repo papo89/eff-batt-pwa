@@ -7,7 +7,7 @@ function VehicleModal({ vehicle, sedeVeicoliCount, onSave, onCancel, showToast }
   
   // Gestione tipo con checkbox multipli
   const getTipoFromVehicle = () => {
-    if (!vehicle?.tipo) return { is3M: true, is6M: false };
+    if (!vehicle?.tipo) return { is3M: false, is6M: false }; // Nuovo veicolo: entrambi deselezionati
     return {
       is3M: vehicle.tipo.includes('3M'),
       is6M: vehicle.tipo.includes('6M')

@@ -5,7 +5,12 @@ export function getMissingFields(state, sedeIdx, vehicleIdx) {
   const d = vehicle.data || {};
   const str = state.strumenti;
   const op = state.operatore;
+  const tipo = vehicle.tipo;
   const missing = [];
+
+  // Determina cosa è richiesto in base al tipo
+  const richiedeMultimetro = tipo === '3M' || tipo === '3M6M';
+  const richiedeDensimetro = tipo === '6M' || tipo === '3M6M';
 
   // Campi SEMPRE obbligatori
   if (!op.nome) missing.push('Nome Operatore');
@@ -14,8 +19,12 @@ export function getMissingFields(state, sedeIdx, vehicleIdx) {
   if (!sede.nome) missing.push('Sede Tecnica');
   if (!sede.odl) missing.push('ODL');
   if (!vehicle.numero) missing.push('Numero Veicolo');
-  if (!str.multId) missing.push('ID Multimetro');
-  if (!str.multScad) missing.push('Scadenza Multimetro');
+  
+  // Multimetro - solo se 3M o 3M6M
+  if (richiedeMultimetro) {
+    if (!str.multId) missing.push('ID Multimetro');
+    if (!str.multScad) missing.push('Scadenza Multimetro');
+  }
 
   // Batterie Pacco 1
   if (!d.b1Data) missing.push('Data Produzione Pacco 1');
@@ -29,31 +38,34 @@ export function getMissingFields(state, sedeIdx, vehicleIdx) {
   if (!d.b2Sn3) missing.push('S/N 3');
   if (!d.b2Sn4) missing.push('S/N 4');
 
-  // Misurazioni ID.2
-  if (!d.id2Vm) missing.push('ID.2 V Multi');
-  if (!d.id2Vv) missing.push('ID.2 V Vettura');
-  if (!d.id2Iv) missing.push('ID.2 I Vettura');
+  // Misurazioni - solo se 3M o 3M6M
+  if (richiedeMultimetro) {
+    // Misurazioni ID.2
+    if (!d.id2Vm) missing.push('ID.2 V Multi');
+    if (!d.id2Vv) missing.push('ID.2 V Vettura');
+    if (!d.id2Iv) missing.push('ID.2 I Vettura');
 
-  // Misurazioni ID.4
-  if (!d.id4Vm) missing.push('ID.4 V Multi');
-  if (!d.id4Vv) missing.push('ID.4 V Vettura');
-  if (!d.id4Iv) missing.push('ID.4 I Vettura');
+    // Misurazioni ID.4
+    if (!d.id4Vm) missing.push('ID.4 V Multi');
+    if (!d.id4Vv) missing.push('ID.4 V Vettura');
+    if (!d.id4Iv) missing.push('ID.4 I Vettura');
 
-  // Misurazioni ID.5
-  if (!d.id5Vm) missing.push('ID.5 V Multi');
-  if (!d.id5Vv) missing.push('ID.5 V Vettura');
-  if (!d.id5Iv) missing.push('ID.5 I Vettura');
+    // Misurazioni ID.5
+    if (!d.id5Vm) missing.push('ID.5 V Multi');
+    if (!d.id5Vv) missing.push('ID.5 V Vettura');
+    if (!d.id5Iv) missing.push('ID.5 I Vettura');
 
-  // Misurazioni ID.6
-  if (!d.id6Vm) missing.push('ID.6 V Multi');
-  if (!d.id6Vv) missing.push('ID.6 V Vettura');
-  if (!d.id6Iv) missing.push('ID.6 I Vettura');
+    // Misurazioni ID.6
+    if (!d.id6Vm) missing.push('ID.6 V Multi');
+    if (!d.id6Vv) missing.push('ID.6 V Vettura');
+    if (!d.id6Iv) missing.push('ID.6 I Vettura');
+  }
 
   // Esito
   if (!d.esito) missing.push('Esito');
 
-  // Campi aggiuntivi per 6 Mesi
-  if (vehicle.tipo === '6M') {
+  // Densimetro e Densità - solo se 6M o 3M6M
+  if (richiedeDensimetro) {
     if (!str.densId) missing.push('ID Densimetro');
     if (!str.densScad) missing.push('Scadenza Densimetro');
 
@@ -127,16 +139,19 @@ export function validateDensita(data) {
 // ==================== VALIDAZIONE SCADENZE STRUMENTI ====================
 export function validateScadenzeStrumenti(strumenti, operatore, tipo) {
   const warnings = [];
+  
+  const richiedeMultimetro = tipo === '3M' || tipo === '3M6M';
+  const richiedeDensimetro = tipo === '6M' || tipo === '3M6M';
 
-  // Controllo scadenza Multimetro
-  if (strumenti.multScad && operatore.data) {
+  // Controllo scadenza Multimetro - solo se 3M o 3M6M
+  if (richiedeMultimetro && strumenti.multScad && operatore.data) {
     if (strumenti.multScad < operatore.data) {
       warnings.push(`⚠️ Multimetro scaduto (scadenza: ${formatDate(strumenti.multScad)})`);
     }
   }
 
-  // Controllo scadenza Densimetro (solo per 6 Mesi)
-  if (tipo === '6M' && strumenti.densScad && operatore.data) {
+  // Controllo scadenza Densimetro - solo se 6M o 3M6M
+  if (richiedeDensimetro && strumenti.densScad && operatore.data) {
     if (strumenti.densScad < operatore.data) {
       warnings.push(`⚠️ Densimetro scaduto (scadenza: ${formatDate(strumenti.densScad)})`);
     }

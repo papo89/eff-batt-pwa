@@ -20,9 +20,34 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
   const tipo = vehicle.tipo;
   const settings = loadSettings();
 
-  const steps = tipo === '3M' 
-    ? [{ id: 'batterie', title: '🔋 Batterie' }, { id: 'misure', title: '📊 Misurazioni' }, { id: 'esito', title: '✅ Esito' }]
-    : [{ id: 'batterie', title: '🔋 Batterie' }, { id: 'misure', title: '📊 Misurazioni' }, { id: 'densita', title: '💧 Densità' }, { id: 'esito', title: '✅ Esito' }];
+  // Determina gli step in base al tipo di verifica
+  const getSteps = () => {
+    if (tipo === '3M') {
+      // Solo 3 Mesi: Batterie → Misurazioni → Esito
+      return [
+        { id: 'batterie', title: '🔋 Batterie' }, 
+        { id: 'misure', title: '📊 Misurazioni' }, 
+        { id: 'esito', title: '✅ Esito' }
+      ];
+    } else if (tipo === '6M') {
+      // Solo 6 Mesi: Batterie → Densità → Esito (NO misurazioni)
+      return [
+        { id: 'batterie', title: '🔋 Batterie' }, 
+        { id: 'densita', title: '💧 Densità' }, 
+        { id: 'esito', title: '✅ Esito' }
+      ];
+    } else {
+      // 3M + 6M: Batterie → Misurazioni → Densità → Esito
+      return [
+        { id: 'batterie', title: '🔋 Batterie' }, 
+        { id: 'misure', title: '📊 Misurazioni' }, 
+        { id: 'densita', title: '💧 Densità' }, 
+        { id: 'esito', title: '✅ Esito' }
+      ];
+    }
+  };
+
+  const steps = getSteps();
 
   const [currentStep, setCurrentStep] = useState(0);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
@@ -197,11 +222,17 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
       const filename = getFilename(vehicle, state.operatore);
       const reportId = getReportId(vehicle, state.operatore);
 
+      // Determina stringa tipo per storico
+      let tipoStorico;
+      if (tipo === '3M') tipoStorico = '3Mesi';
+      else if (tipo === '6M') tipoStorico = '6Mesi';
+      else tipoStorico = '3+6Mesi';
+
       // Salva report in IndexedDB
       await saveReport({
         id: reportId,
         veicolo: vehicle.numero,
-        tipo: tipo === '3M' ? '3Mesi' : '6Mesi',
+        tipo: tipoStorico,
         data: formatDate(state.operatore.data),
         sede: sede.nome,
         odl: sede.odl,
@@ -445,7 +476,7 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
         <div className="vehicle-form-title">
           <h3>{vehicle.numero}</h3>
           <span className={`badge badge-${tipo.toLowerCase()}`}>
-            {tipo === '3M' ? '3 Mesi' : '6 Mesi'}
+            {tipo === '3M' ? '3 Mesi' : tipo === '6M' ? '6 Mesi' : '3+6 Mesi'}
           </span>
         </div>
 

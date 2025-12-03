@@ -244,7 +244,7 @@ function Home({
                           <h4>{vehicle.numero || 'Veicolo'}</h4>
                           <p>
                             <span className={`badge badge-${vehicle.tipo.toLowerCase()}`}>
-                              {vehicle.tipo === '3M' ? '3 Mesi' : '6 Mesi'}
+                              {vehicle.tipo === '3M' ? '3 Mesi' : vehicle.tipo === '6M' ? '6 Mesi' : '3+6 Mesi'}
                             </span>
                             {' '}{statusText}
                           </p>

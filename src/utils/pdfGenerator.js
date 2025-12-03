@@ -62,12 +62,23 @@ export async function generatePDF(pdfBytes, state, sedeIdx, vehicleIdx) {
   // PAGINA 1 - Header
   writeField('Text1', sede.nome, page1);
   writeField('Text2', vehicle.numero, page1);
-  writeField('Text3', vehicle.tipo === '3M' ? '3 MESI' : '6 MESI', page1);
+  
+  // Tipo verifica
+  let tipoVerifica;
+  if (vehicle.tipo === '3M') {
+    tipoVerifica = '3 MESI';
+  } else if (vehicle.tipo === '6M') {
+    tipoVerifica = '6 MESI';
+  } else {
+    tipoVerifica = '3 MESI + 6 MESI';
+  }
+  writeField('Text3', tipoVerifica, page1);
   writeField('Text27', sede.odl, page1);
 
-  // Multimetro
-  writeField('Text4', str.multId, page1);
-  writeField('Text5', formatDate(str.multScad), page1);
+  // Multimetro - solo se 3M o 3M6M
+  const richiedeMultimetro = vehicle.tipo === '3M' || vehicle.tipo === '3M6M';
+  writeField('Text4', richiedeMultimetro ? str.multId : '', page1);
+  writeField('Text5', richiedeMultimetro ? formatDate(str.multScad) : '', page1);
 
   // Batterie Pacco 1
   writeField('Text7', d.b1Data, page1);
@@ -81,57 +92,76 @@ export async function generatePDF(pdfBytes, state, sedeIdx, vehicleIdx) {
   writeField('Text11', d.b2Sn3, page1);
   writeField('Text12', d.b2Sn4, page1);
 
-  // ID.2 - Carica completa
-  writeField('Text15', d.id2Vm, page1);
-  writeField('Text16', d.id2Vv, page1);
-  writeField('Text17', d.id2Iv, page1);
+  // Misurazioni - solo se 3M o 3M6M
+  if (richiedeMultimetro) {
+    // ID.2 - Carica completa
+    writeField('Text15', d.id2Vm, page1);
+    writeField('Text16', d.id2Vv, page1);
+    writeField('Text17', d.id2Iv, page1);
 
-  // ID.4 - Inizio scarica
-  writeField('Text18', d.id4Vm, page1);
-  writeField('Text19', d.id4Vv, page1);
-  writeField('Text20', d.id4Iv ? `-${d.id4Iv}`.replace('--', '-') : '', page1);
+    // ID.4 - Inizio scarica
+    writeField('Text18', d.id4Vm, page1);
+    writeField('Text19', d.id4Vv, page1);
+    writeField('Text20', d.id4Iv ? `-${d.id4Iv}`.replace('--', '-') : '', page1);
 
-  // ID.5 - Durante scarica
-  writeField('Text21', d.id5Vm, page1);
-  writeField('Text22', d.id5Vv, page1);
-  writeField('Text23', d.id5Iv ? `-${d.id5Iv}`.replace('--', '-') : '', page1);
+    // ID.5 - Durante scarica
+    writeField('Text21', d.id5Vm, page1);
+    writeField('Text22', d.id5Vv, page1);
+    writeField('Text23', d.id5Iv ? `-${d.id5Iv}`.replace('--', '-') : '', page1);
 
-  // ID.6 - Fine scarica
-  writeField('Text24', d.id6Vm, page1);
-  writeField('Text25', d.id6Vv, page1);
-  writeField('Text26', d.id6Iv ? `-${d.id6Iv}`.replace('--', '-') : '', page1);
+    // ID.6 - Fine scarica
+    writeField('Text24', d.id6Vm, page1);
+    writeField('Text25', d.id6Vv, page1);
+    writeField('Text26', d.id6Iv ? `-${d.id6Iv}`.replace('--', '-') : '', page1);
+  } else {
+    // Rimuovi campi misurazioni vuoti
+    ['Text15', 'Text16', 'Text17', 'Text18', 'Text19', 'Text20', 'Text21', 'Text22', 'Text23', 'Text24', 'Text25', 'Text26'].forEach(name => {
+      writeField(name, '', page1);
+    });
+  }
 
-  // PAGINA 2 - Densimetro
-  writeField('Text28', str.densId, page2);
-  writeField('Text29', formatDate(str.densScad), page2);
+  // Densimetro e Densità - solo se 6M o 3M6M
+  const richiedeDensimetro = vehicle.tipo === '6M' || vehicle.tipo === '3M6M';
+  
+  if (richiedeDensimetro) {
+    // PAGINA 2 - Densimetro
+    writeField('Text28', str.densId, page2);
+    writeField('Text29', formatDate(str.densScad), page2);
 
-  // Densità Pacco 1
-  writeField('Text30', d.p1e1, page2);
-  writeField('Text31', d.p1e2, page2);
-  writeField('Text32', d.p1e3, page2);
-  writeField('Text33', d.p1e4, page2);
-  writeField('Text34', d.p1e5, page2);
-  writeField('Text35', d.p1e6, page2);
-  writeField('Text36', d.p1e7, page2);
-  writeField('Text37', d.p1e8, page2);
-  writeField('Text38', d.p1e9, page2);
-  writeField('Text39', d.p1e10, page2);
-  writeField('Text40', d.p1e11, page2);
-  writeField('Text41', d.p1e12, page2);
+    // Densità Pacco 1
+    writeField('Text30', d.p1e1, page2);
+    writeField('Text31', d.p1e2, page2);
+    writeField('Text32', d.p1e3, page2);
+    writeField('Text33', d.p1e4, page2);
+    writeField('Text34', d.p1e5, page2);
+    writeField('Text35', d.p1e6, page2);
+    writeField('Text36', d.p1e7, page2);
+    writeField('Text37', d.p1e8, page2);
+    writeField('Text38', d.p1e9, page2);
+    writeField('Text39', d.p1e10, page2);
+    writeField('Text40', d.p1e11, page2);
+    writeField('Text41', d.p1e12, page2);
 
-  // Densità Pacco 2
-  writeField('Text42', d.p2e1, page2);
-  writeField('Text43', d.p2e2, page2);
-  writeField('Text44', d.p2e3, page2);
-  writeField('Text45', d.p2e4, page2);
-  writeField('Text46', d.p2e5, page2);
-  writeField('Text47', d.p2e6, page2);
-  writeField('Text48', d.p2e7, page2);
-  writeField('Text49', d.p2e8, page2);
-  writeField('Text50', d.p2e9, page2);
-  writeField('Text51', d.p2e10, page2);
-  writeField('Text52', d.p2e11, page2);
-  writeField('Text53', d.p2e12, page2);
+    // Densità Pacco 2
+    writeField('Text42', d.p2e1, page2);
+    writeField('Text43', d.p2e2, page2);
+    writeField('Text44', d.p2e3, page2);
+    writeField('Text45', d.p2e4, page2);
+    writeField('Text46', d.p2e5, page2);
+    writeField('Text47', d.p2e6, page2);
+    writeField('Text48', d.p2e7, page2);
+    writeField('Text49', d.p2e8, page2);
+    writeField('Text50', d.p2e9, page2);
+    writeField('Text51', d.p2e10, page2);
+    writeField('Text52', d.p2e11, page2);
+    writeField('Text53', d.p2e12, page2);
+  } else {
+    // Rimuovi campi densità vuoti
+    ['Text28', 'Text29'].forEach(name => writeField(name, '', page2));
+    for (let i = 30; i <= 53; i++) {
+      writeField(`Text${i}`, '', page2);
+    }
+  }
 
   // Operatore
   writeField('Text56', op.nome, page2);

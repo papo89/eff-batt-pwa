@@ -34,7 +34,7 @@ function GuidaModal({ onClose }) {
             <ul>
               <li>Nella sede, tocca "+ Aggiungi Veicolo"</li>
               <li>Inserisci NEV (viene validato automaticamente)</li>
-              <li>Seleziona tipo verifica: 3 Mesi o 6 Mesi</li>
+              <li>Seleziona tipo verifica: 3 Mesi, 6 Mesi o entrambe</li>
             </ul>
           </section>
 

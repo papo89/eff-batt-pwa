@@ -302,6 +302,11 @@ body {
   color: #c2185b;
 }
 
+.badge-3m6m {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
 /* Section Title */
 .section-title {
   font-size: 13px;
@@ -2058,4 +2063,43 @@ body {
 .guida-section.suggerimenti h4 {
   border-bottom: none;
   padding-bottom: 0;
+}
+
+/* ==================== TIPO VERIFICA CHECKBOXES ==================== */
+.tipo-checkboxes {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.tipo-checkbox {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--bg);
+}
+
+.tipo-checkbox:active {
+  transform: scale(0.98);
+}
+
+.tipo-checkbox.selected {
+  border-color: var(--primary);
+  background: rgba(0, 122, 255, 0.1);
+}
+
+.tipo-check {
+  font-size: 18px;
+}
+
+.tipo-label {
+  font-weight: 500;
+  color: var(--text);
 }

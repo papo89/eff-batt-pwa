@@ -4,7 +4,18 @@ import { vibrateShort, vibrateError } from '../utils/feedback';
 
 function VehicleModal({ vehicle, sedeVeicoliCount, onSave, onCancel, showToast }) {
   const [numero, setNumero] = useState(vehicle?.numero || '');
-  const [tipo, setTipo] = useState(vehicle?.tipo || '3M');
+  
+  // Gestione tipo con checkbox multipli
+  const getTipoFromVehicle = () => {
+    if (!vehicle?.tipo) return { is3M: true, is6M: false };
+    return {
+      is3M: vehicle.tipo.includes('3M'),
+      is6M: vehicle.tipo.includes('6M')
+    };
+  };
+  
+  const [is3M, setIs3M] = useState(getTipoFromVehicle().is3M);
+  const [is6M, setIs6M] = useState(getTipoFromVehicle().is6M);
 
   const handleSave = () => {
     if (!numero.trim()) {
@@ -21,15 +32,41 @@ function VehicleModal({ vehicle, sedeVeicoliCount, onSave, onCancel, showToast }
       return;
     }
     
+    // Almeno un tipo deve essere selezionato
+    if (!is3M && !is6M) {
+      vibrateError();
+      showToast('Seleziona almeno un tipo di verifica', 'danger');
+      return;
+    }
+    
     if (!vehicle && sedeVeicoliCount >= 8) {
       vibrateError();
       showToast('Massimo 8 veicoli per sede', 'danger');
       return;
     }
     
+    // Determina tipo finale
+    let tipo;
+    if (is3M && is6M) {
+      tipo = '3M6M';
+    } else if (is3M) {
+      tipo = '3M';
+    } else {
+      tipo = '6M';
+    }
+    
     vibrateShort();
-    // Salva con numero formattato (con trattino)
     onSave({ numero: risultato.formattato, tipo });
+  };
+
+  const handleToggle3M = () => {
+    vibrateShort();
+    setIs3M(!is3M);
+  };
+
+  const handleToggle6M = () => {
+    vibrateShort();
+    setIs6M(!is6M);
   };
 
   return (
@@ -52,20 +89,22 @@ function VehicleModal({ vehicle, sedeVeicoliCount, onSave, onCancel, showToast }
         </div>
         
         <div className="form-group">
-          <label>Tipo Scadenza</label>
-          <div className="esito-buttons" style={{ marginTop: '8px' }}>
-            <button
-              className={`esito-btn ${tipo === '3M' ? 'selected positivo' : ''}`}
-              onClick={() => setTipo('3M')}
+          <label>Tipo Verifica (seleziona uno o entrambi)</label>
+          <div className="tipo-checkboxes">
+            <div 
+              className={`tipo-checkbox ${is3M ? 'selected' : ''}`}
+              onClick={handleToggle3M}
             >
-              3 Mesi
-            </button>
-            <button
-              className={`esito-btn ${tipo === '6M' ? 'selected negativo' : ''}`}
-              onClick={() => setTipo('6M')}
+              <span className="tipo-check">{is3M ? '☑️' : '☐'}</span>
+              <span className="tipo-label">3 Mesi</span>
+            </div>
+            <div 
+              className={`tipo-checkbox ${is6M ? 'selected' : ''}`}
+              onClick={handleToggle6M}
             >
-              6 Mesi
-            </button>
+              <span className="tipo-check">{is6M ? '☑️' : '☐'}</span>
+              <span className="tipo-label">6 Mesi</span>
+            </div>
           </div>
         </div>
 

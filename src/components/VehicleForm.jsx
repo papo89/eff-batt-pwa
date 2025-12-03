@@ -512,27 +512,6 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
         </div>
       </div>
 
-      {/* Dots indicator */}
-      <div className="vehicle-dots-overlay">
-        <div className="dots-container">
-          {steps.map((s, i) => (
-            <div 
-              key={s.id}
-              className={`dot ${i === currentStep ? 'active' : ''}`}
-              onClick={() => {
-                if (i < currentStep) {
-                  vibrateShort();
-                  setCurrentStep(i);
-                } else if (i === currentStep + 1 && canGoNext()) {
-                  vibrateShort();
-                  setCurrentStep(i);
-                }
-              }}
-            />
-          ))}
-        </div>
-      </div>
-
       <SuccessPopup
         show={showSuccessPopup}
         onShare={handleGoToShare}

@@ -128,7 +128,7 @@ function HamburgerMenu({ show, onClose, settings, onUpdateSettings, showToast })
           </div>
 
           <div className="hamburger-footer">
-            <span>v2.1.2</span>
+            <span>v2.1.3</span>
           </div>
         </div>
       </div>

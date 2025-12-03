@@ -1989,35 +1989,21 @@ body {
   max-width: 480px;
   margin: 0 auto;
   padding: 16px;
-  padding-bottom: 160px;
+  padding-bottom: 120px;
   min-height: 100%;
 }
 
 .vehicle-nav-buttons {
   position: fixed;
-  bottom: 50px;
+  bottom: 0;
   left: 0;
   right: 0;
   background: linear-gradient(to bottom, transparent 0%, var(--card) 30%);
-  padding: 20px 16px 16px;
+  padding: 20px 16px 20px;
   z-index: 40;
 }
 
 .vehicle-nav-buttons .nav-buttons {
   max-width: 480px;
   margin: 0 auto;
-}
-
-.vehicle-dots-overlay {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 50px;
-  background: var(--card);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 50;
-  border-top: 1px solid var(--border);
 }

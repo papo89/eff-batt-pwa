@@ -167,6 +167,10 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
       // Swipe right → step precedente
       vibrateShort();
       setCurrentStep(prev => prev - 1);
+    } else if (diff < -threshold && currentStep === 0) {
+      // Swipe right dalla prima slide → torna a Sedi
+      vibrateShort();
+      onBack();
     }
   };
 

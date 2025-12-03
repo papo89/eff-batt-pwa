@@ -39,7 +39,7 @@ function SedeForm({ sede, onSave, onCancel, showToast }) {
             type="text"
             placeholder="MAxxMD.... o C3010R"
             value={nome}
-            onChange={(e) => setNome(e.target.value)}
+            onChange={(e) => setNome(e.target.value.toUpperCase())}
           />
         </div>
         

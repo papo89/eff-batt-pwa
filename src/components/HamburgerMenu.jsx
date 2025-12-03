@@ -3,6 +3,7 @@ import SettingsModal from './SettingsModal';
 import StrumentiManager from './StrumentiManager';
 import Dashboard from './Dashboard';
 import StoricoModal from './StoricoModal';
+import GuidaModal from './GuidaModal';
 import { getSharedReportsCount } from '../utils/storage';
 import { vibrateShort } from '../utils/feedback';
 
@@ -45,15 +46,6 @@ function HamburgerMenu({ show, onClose, settings, onUpdateSettings, showToast })
           <div className="hamburger-items">
             <div 
               className="hamburger-item"
-              onClick={() => handleMenuClick('aspetto')}
-            >
-              <span className="hamburger-icon">🎨</span>
-              <span className="hamburger-label">Aspetto e Accessibilità</span>
-              <span className="hamburger-arrow">›</span>
-            </div>
-
-            <div 
-              className="hamburger-item"
               onClick={() => handleMenuClick('strumenti')}
             >
               <span className="hamburger-icon">🛠️</span>
@@ -77,10 +69,28 @@ function HamburgerMenu({ show, onClose, settings, onUpdateSettings, showToast })
 
             <div 
               className="hamburger-item"
+              onClick={() => handleMenuClick('aspetto')}
+            >
+              <span className="hamburger-icon">🎨</span>
+              <span className="hamburger-label">Aspetto e Accessibilità</span>
+              <span className="hamburger-arrow">›</span>
+            </div>
+
+            <div 
+              className="hamburger-item"
               onClick={() => handleMenuClick('dashboard')}
             >
               <span className="hamburger-icon">📊</span>
               <span className="hamburger-label">Dashboard</span>
+              <span className="hamburger-arrow">›</span>
+            </div>
+
+            <div 
+              className="hamburger-item"
+              onClick={() => handleMenuClick('guida')}
+            >
+              <span className="hamburger-icon">📖</span>
+              <span className="hamburger-label">Guida all'utilizzo</span>
               <span className="hamburger-arrow">›</span>
             </div>
 
@@ -128,7 +138,7 @@ function HamburgerMenu({ show, onClose, settings, onUpdateSettings, showToast })
           </div>
 
           <div className="hamburger-footer">
-            <span>v2.1.3</span>
+            <span>v2.1.4</span>
           </div>
         </div>
       </div>
@@ -154,6 +164,10 @@ function HamburgerMenu({ show, onClose, settings, onUpdateSettings, showToast })
 
       {activeModal === 'dashboard' && (
         <Dashboard onClose={closeModal} />
+      )}
+
+      {activeModal === 'guida' && (
+        <GuidaModal onClose={closeModal} />
       )}
     </>
   );

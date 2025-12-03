@@ -256,7 +256,7 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
           <input
             type="text"
             value={data.b1Costr || ''}
-            onChange={(e) => updateField('b1Costr', e.target.value)}
+            onChange={(e) => updateField('b1Costr', e.target.value.toUpperCase())}
           />
         </div>
       </div>
@@ -297,7 +297,7 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
           <input
             type="text"
             value={data.b2Costr || ''}
-            onChange={(e) => updateField('b2Costr', e.target.value)}
+            onChange={(e) => updateField('b2Costr', e.target.value.toUpperCase())}
           />
         </div>
       </div>

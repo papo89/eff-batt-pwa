@@ -37,7 +37,7 @@ function StrumentiAutocomplete({
   };
 
   const handleInputChange = (e) => {
-    const inputValue = e.target.value;
+    const inputValue = e.target.value.toUpperCase();
     onChangeId(inputValue);
 
     // Filtra suggerimenti

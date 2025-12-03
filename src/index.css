@@ -2007,3 +2007,55 @@ body {
   max-width: 480px;
   margin: 0 auto;
 }
+
+/* ==================== GUIDA MODAL ==================== */
+.guida-modal {
+  max-width: 500px;
+  max-height: 85vh;
+}
+
+.guida-content {
+  padding: 0 16px 16px;
+  overflow-y: auto;
+  max-height: calc(85vh - 130px);
+}
+
+.guida-section {
+  margin-bottom: 20px;
+}
+
+.guida-section h4 {
+  font-size: 15px;
+  color: var(--primary);
+  margin: 0 0 8px 0;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.guida-section ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.guida-section li {
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.guida-section li strong {
+  color: var(--text);
+}
+
+.guida-section.suggerimenti {
+  background: var(--bg);
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 16px;
+}
+
+.guida-section.suggerimenti h4 {
+  border-bottom: none;
+  padding-bottom: 0;
+}

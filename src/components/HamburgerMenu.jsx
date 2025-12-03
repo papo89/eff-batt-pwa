@@ -4,7 +4,6 @@ import StrumentiManager from './StrumentiManager';
 import Dashboard from './Dashboard';
 import StoricoModal from './StoricoModal';
 import { getSharedReportsCount } from '../utils/storage';
-import { initNotifications, stopNotifications } from '../utils/notifications';
 import { vibrateShort } from '../utils/feedback';
 
 function HamburgerMenu({ show, onClose, settings, onUpdateSettings, showToast }) {
@@ -29,30 +28,6 @@ function HamburgerMenu({ show, onClose, settings, onUpdateSettings, showToast })
   const closeModal = () => {
     setActiveModal(null);
     loadStoricoCount();
-  };
-
-  const handleNotificationToggle = (enabled) => {
-    vibrateShort();
-    onUpdateSettings({ ...settings, notificationsEnabled: enabled });
-    if (enabled) {
-      initNotifications();
-    } else {
-      stopNotifications();
-    }
-  };
-
-  const updateNotificationTime = (type, field, value) => {
-    vibrateShort();
-    const timeKey = type === 'workday' ? 'notificationTimeWorkday' : 'notificationTimeHoliday';
-    const currentTime = settings[timeKey] || { hour: 12, minute: 0 };
-    const newTime = { ...currentTime, [field]: parseInt(value, 10) };
-    onUpdateSettings({ ...settings, [timeKey]: newTime });
-    
-    // Rischedula notifiche con nuovo orario
-    if (settings.notificationsEnabled) {
-      stopNotifications();
-      setTimeout(() => initNotifications(), 100);
-    }
   };
 
   if (!show) return null;
@@ -123,7 +98,10 @@ function HamburgerMenu({ show, onClose, settings, onUpdateSettings, showToast })
                 <input
                   type="checkbox"
                   checked={settings.vibrationEnabled}
-                  onChange={(e) => onUpdateSettings({ ...settings, vibrationEnabled: e.target.checked })}
+                  onChange={(e) => {
+                    vibrateShort();
+                    onUpdateSettings({ ...settings, vibrationEnabled: e.target.checked });
+                  }}
                 />
                 <span className="toggle-slider"></span>
               </label>
@@ -139,81 +117,18 @@ function HamburgerMenu({ show, onClose, settings, onUpdateSettings, showToast })
                 <input
                   type="checkbox"
                   checked={settings.keepScreenOn}
-                  onChange={(e) => onUpdateSettings({ ...settings, keepScreenOn: e.target.checked })}
+                  onChange={(e) => {
+                    vibrateShort();
+                    onUpdateSettings({ ...settings, keepScreenOn: e.target.checked });
+                  }}
                 />
                 <span className="toggle-slider"></span>
               </label>
             </div>
-
-            <div className="hamburger-item toggle">
-              <span className="hamburger-icon">🔔</span>
-              <div className="hamburger-item-content">
-                <span className="hamburger-label">Notifiche report</span>
-                <span className="hamburger-sublabel">Promemoria report da inviare</span>
-              </div>
-              <label className="toggle-switch">
-                <input
-                  type="checkbox"
-                  checked={settings.notificationsEnabled}
-                  onChange={(e) => handleNotificationToggle(e.target.checked)}
-                />
-                <span className="toggle-slider"></span>
-              </label>
-            </div>
-
-            {settings.notificationsEnabled && (
-              <div className="notification-times">
-                <div className="time-setting">
-                  <label>Giorni lavorativi</label>
-                  <div className="time-inputs">
-                    <select 
-                      value={settings.notificationTimeWorkday?.hour || 15}
-                      onChange={(e) => updateNotificationTime('workday', 'hour', e.target.value)}
-                    >
-                      {[...Array(24)].map((_, i) => (
-                        <option key={i} value={i}>{String(i).padStart(2, '0')}</option>
-                      ))}
-                    </select>
-                    <span>:</span>
-                    <select
-                      value={settings.notificationTimeWorkday?.minute || 15}
-                      onChange={(e) => updateNotificationTime('workday', 'minute', e.target.value)}
-                    >
-                      {[0, 15, 30, 45].map((m) => (
-                        <option key={m} value={m}>{String(m).padStart(2, '0')}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                
-                <div className="time-setting">
-                  <label>Festivi / Weekend</label>
-                  <div className="time-inputs">
-                    <select
-                      value={settings.notificationTimeHoliday?.hour || 12}
-                      onChange={(e) => updateNotificationTime('holiday', 'hour', e.target.value)}
-                    >
-                      {[...Array(24)].map((_, i) => (
-                        <option key={i} value={i}>{String(i).padStart(2, '0')}</option>
-                      ))}
-                    </select>
-                    <span>:</span>
-                    <select
-                      value={settings.notificationTimeHoliday?.minute || 50}
-                      onChange={(e) => updateNotificationTime('holiday', 'minute', e.target.value)}
-                    >
-                      {[0, 15, 30, 45].map((m) => (
-                        <option key={m} value={m}>{String(m).padStart(2, '0')}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
 
           <div className="hamburger-footer">
-            <span>v2.1.0</span>
+            <span>v2.1.1</span>
           </div>
         </div>
       </div>

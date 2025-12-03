@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { loadState, saveState, getDefaultState, loadPdfTemplate, savePdfTemplate, loadSettings, saveSettings, getDefaultSettings, getUnsharedReportsCount } from './utils/storage';
-import { initNotifications } from './utils/notifications';
 import Header from './components/Header';
 import Home from './components/Home';
 import SedeForm from './components/SedeForm';
@@ -43,9 +42,6 @@ function App() {
       } else {
         setScreen('setup');
       }
-
-      // Inizializza notifiche
-      initNotifications();
       
       // Carica contatore report non condivisi
       refreshUnsharedCount();

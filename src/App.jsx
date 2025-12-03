@@ -121,6 +121,7 @@ function App() {
       ...prev,
       sedi: [...prev.sedi, { ...sede, veicoli: [] }]
     }));
+    setHomeInitialSlide(1);
     setScreen('home');
   };
 
@@ -131,6 +132,7 @@ function App() {
       return { ...prev, sedi: newSedi };
     });
     setEditingSede(null);
+    setHomeInitialSlide(1);
     setScreen('home');
   };
 

@@ -259,3 +259,31 @@ export async function markMultipleReportsAsShared(ids) {
     }
   }
 }
+
+// ==================== LAST OPEN DATE (localStorage) ====================
+const LAST_OPEN_DATE_KEY = 'effBattLastOpenDate';
+
+export function getLastOpenDate() {
+  try {
+    return localStorage.getItem(LAST_OPEN_DATE_KEY);
+  } catch (e) {
+    console.error('Errore lettura lastOpenDate:', e);
+    return null;
+  }
+}
+
+export function setLastOpenDate(date) {
+  try {
+    localStorage.setItem(LAST_OPEN_DATE_KEY, date);
+  } catch (e) {
+    console.error('Errore salvataggio lastOpenDate:', e);
+  }
+}
+
+export function getTodayDateString() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}

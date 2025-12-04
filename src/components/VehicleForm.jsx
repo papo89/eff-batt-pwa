@@ -90,7 +90,49 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
   };
 
   const handleDataProduzione = (field, value) => {
-    updateField(field, formatDataProduzione(value));
+    const formattedValue = formatDataProduzione(value);
+    updateField(field, formattedValue);
+  };
+
+  // Controllo scadenza batterie (6 anni) - chiamato onBlur
+  const checkScadenzaBatterie = (field) => {
+    const value = data[field];
+    if (!value || value.length < 7) return; // Formato: MM/AAAA
+    
+    const dataOperatore = state.operatore.data;
+    if (!dataOperatore) return;
+    
+    // Parse data produzione (MM/AAAA)
+    const parts = value.split('/');
+    if (parts.length !== 2) return;
+    
+    const meseProd = parseInt(parts[0], 10);
+    const annoProd = parseInt(parts[1], 10);
+    if (isNaN(meseProd) || isNaN(annoProd)) return;
+    
+    // Calcola data scadenza (+ 6 anni)
+    const annoScadenza = annoProd + 6;
+    const dataScadenza = new Date(annoScadenza, meseProd - 1, 1); // Primo giorno del mese
+    
+    // Parse data operatore (YYYY-MM-DD)
+    const opParts = dataOperatore.split('-');
+    const dataOp = new Date(parseInt(opParts[0], 10), parseInt(opParts[1], 10) - 1, parseInt(opParts[2], 10));
+    
+    // Calcola differenza in mesi
+    const diffTime = dataScadenza.getTime() - dataOp.getTime();
+    const diffMesi = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 30));
+    
+    // Determina quale pacco
+    const paccoNum = field.includes('b1') ? '1' : '2';
+    const scadenzaStr = `${String(meseProd).padStart(2, '0')}/${annoScadenza}`;
+    
+    if (diffMesi <= 0) {
+      // Scaduto
+      showToast(`⚠️ Pacco ${paccoNum}: SCADUTO (${scadenzaStr})`, 'danger');
+    } else if (diffMesi <= 3) {
+      // Scade entro 3 mesi
+      showToast(`⚠️ Pacco ${paccoNum}: scade tra ${diffMesi} ${diffMesi === 1 ? 'mese' : 'mesi'} (${scadenzaStr})`, 'warning');
+    }
   };
 
   // Riempi tutte le densità con il valore del primo elemento
@@ -305,6 +347,7 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
             maxLength={7}
             value={data.b1Data || ''}
             onChange={(e) => handleDataProduzione('b1Data', e.target.value)}
+            onBlur={() => checkScadenzaBatterie('b1Data')}
           />
         </div>
         <div className="form-group">
@@ -346,6 +389,7 @@ function VehicleForm({ state, sedeIdx, vehicleIdx, pdfBytes, onUpdateData, onPdf
             maxLength={7}
             value={data.b2Data || ''}
             onChange={(e) => handleDataProduzione('b2Data', e.target.value)}
+            onBlur={() => checkScadenzaBatterie('b2Data')}
           />
         </div>
         <div className="form-group">

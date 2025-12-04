@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { loadState, saveState, getDefaultState, loadPdfTemplate, savePdfTemplate, loadSettings, saveSettings, getDefaultSettings, getUnsharedReportsCount } from './utils/storage';
+import { loadState, saveState, getDefaultState, loadPdfTemplate, savePdfTemplate, loadSettings, saveSettings, getDefaultSettings, getUnsharedReportsCount, getLastOpenDate, setLastOpenDate, getTodayDateString } from './utils/storage';
 import Header from './components/Header';
 import Home from './components/Home';
 import SedeForm from './components/SedeForm';
@@ -29,7 +29,24 @@ function App() {
   // Carica stato, settings e PDF all'avvio
   useEffect(() => {
     const init = async () => {
-      const savedState = loadState();
+      let savedState = loadState();
+      
+      // Auto-aggiorna data operatore alla prima apertura della giornata
+      const today = getTodayDateString();
+      const lastOpen = getLastOpenDate();
+      
+      if (lastOpen !== today) {
+        // Prima apertura della giornata: aggiorna data operatore
+        savedState = {
+          ...savedState,
+          operatore: {
+            ...savedState.operatore,
+            data: today
+          }
+        };
+        setLastOpenDate(today);
+      }
+      
       setState(savedState);
       
       const savedSettings = loadSettings();
